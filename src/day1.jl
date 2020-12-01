@@ -9,30 +9,22 @@ expenses = open("src/day1-input.txt") do file
     readlines(file) |> l -> parse.(Int, l)
 end
 
-function findpair(a, predicate :: Function)
-    for i = 1:lastindex(a), j = 1:i
-        if predicate(a[i],a[j])
-            return (i,j)
+function findn(f, predicate, a, n, imax = length(a), values=())
+    if n == 0
+        if predicate(values...)
+            return f(values...)
+        else
+            return nothing
         end
     end
-    throw(ErrorException("Not found"))
-end
-
-(i,j) = findpair(expenses, (x,y) -> x + y == 2020)
-
-@show (i,j), expenses[i], expenses[j]
-@show expenses[i] * expenses[j]
-
-function findtriple(a, predicate :: Function)
-    for i = 1:lastindex(a), j = 1:i, k = 1:j
-        if predicate(a[i],a[j],a[k])
-            return (i,j,k)
+    for i = 1:imax
+        result = findn(f, predicate, a, n-1, i - 1, (values..., a[i]))
+        if result != nothing
+            return result
         end
     end
-    throw(ErrorException("Not found"))
+    return nothing
 end
 
-(i,j,k) = findtriple(expenses, (x,y,z) -> x + y + z == 2020)
-
-@show (i,j,k), expenses[i], expenses[j], expenses[k]
-@show expenses[i] * expenses[j] * expenses[k]
+@show findn((*), (args...) -> +(args...) == 2020, expenses, 2)
+@show findn((*), (args...) -> +(args...) == 2020, expenses, 3)
