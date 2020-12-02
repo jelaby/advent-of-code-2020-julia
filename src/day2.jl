@@ -8,8 +8,8 @@ day2:
 using StatsBase
 
 struct PasswordSpec
-    min::Int
-    max::Int
+    first::Int
+    second::Int
     char::AbstractChar
     password::AbstractString
 end
@@ -27,7 +27,7 @@ passwords = open("src/day2-input.txt") do file
 end
 
 function checkPassword(spec :: PasswordSpec)
-    return spec.min <= get(countmap(spec.password), spec.char, 0) <= spec.max
+    (spec.password[spec.first] == spec.char) ⊻ (spec.password[spec.second] == spec.char)
 end
 
 (+)(checkPassword.(passwords)...)
