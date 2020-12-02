@@ -5,9 +5,9 @@ day1:
 - Date: 2020-12-01
 =#
 
-using AdventOfCode
+import AoC
 
-expenses = parse.(Int, day(1).lines)
+expenses = parse.(Int, AoC.lines(1))
 
 function findn(f, predicate, a, n, imax = length(a), values=())
     if n == 0

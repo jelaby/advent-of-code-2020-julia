@@ -5,7 +5,8 @@ day2:
 - Date: 2020-12-02
 =#
 
-using StatsBase, AdventOfCode
+using StatsBase
+import AoC
 
 struct PasswordSpec
     first::Int
@@ -22,7 +23,7 @@ PasswordSpec(line) = PasswordSpec(match(r"^(\d+)-(\d+)\s+(\w):\s*(\w+)$", line).
 checkPasswordForSomeOtherCompany(spec :: PasswordSpec) = spec.first ≤ get(countmap(spec.password), spec.char, 0) ≤ spec.second
 checkPassword(spec :: PasswordSpec) = (spec.password[spec.first] == spec.char) ⊻ (spec.password[spec.second] == spec.char)
 
-passwords = PasswordSpec.(day(2).lines)
+passwords = PasswordSpec.(AoC.lines(2))
 
 @show sum(checkPasswordForSomeOtherCompany, passwords)
 @show sum(checkPassword, passwords)
