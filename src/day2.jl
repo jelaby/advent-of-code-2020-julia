@@ -19,10 +19,12 @@ PasswordSpec(min::AbstractString, max::AbstractString, char::AbstractString, pas
 
 PasswordSpec(line) = PasswordSpec(match(r"^(\d+)-(\d+)\s+(\w):\s*(\w+)$", line).captures...)
 
+checkPasswordForSomeOtherCompany(spec :: PasswordSpec) = spec.first <= get(countmap(spec.password), spec.char, 0) <= spec.second
 checkPassword(spec :: PasswordSpec) = (spec.password[spec.first] == spec.char) ⊻ (spec.password[spec.second] == spec.char)
 
 passwords = open("src/day2-input.txt") do file
     readlines(file) |> l -> PasswordSpec.(l)
 end
 
+@show sum(checkPasswordForSomeOtherCompany, passwords)
 @show sum(checkPassword, passwords)
