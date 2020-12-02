@@ -14,20 +14,15 @@ struct PasswordSpec
     password::AbstractString
 end
 
-function PasswordSpec(min::AbstractString, max::AbstractString, char::AbstractString, password::AbstractString)
+PasswordSpec(min::AbstractString, max::AbstractString, char::AbstractString, password::AbstractString) =
     PasswordSpec(parse(Int, min), parse(Int, max), char[1], password)
-end
 
-function PasswordSpec(line)
-    PasswordSpec(match(r"^(\d+)-(\d+)\s+(\w):\s*(\w+)$", line).captures...)
-end
+PasswordSpec(line) = PasswordSpec(match(r"^(\d+)-(\d+)\s+(\w):\s*(\w+)$", line).captures...)
+
+checkPassword(spec :: PasswordSpec) = (spec.password[spec.first] == spec.char) ⊻ (spec.password[spec.second] == spec.char)
 
 passwords = open("src/day2-input.txt") do file
     readlines(file) |> l -> PasswordSpec.(l)
 end
 
-function checkPassword(spec :: PasswordSpec)
-    (spec.password[spec.first] == spec.char) ⊻ (spec.password[spec.second] == spec.char)
-end
-
-(+)(checkPassword.(passwords)...)
+@show sum(checkPassword, passwords)
