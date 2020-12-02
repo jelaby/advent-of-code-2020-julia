@@ -1,0 +1,4 @@
+name = "AdventOfCode"
+uuid = "c97808d0-4a78-44fe-ae43-3a543360178c"
+[deps]
+HTTP = "cd3eb016-35fb-5094-929b-558a96fad6f3"
