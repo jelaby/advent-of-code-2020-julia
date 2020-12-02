@@ -1,2 +1,3 @@
 *	text=auto
 .git*	text eol=lf
+*.toml	text eol=lf
