@@ -13,15 +13,15 @@ julia>
 """
 module AdventOfCode
 
-    using HTTP
+    export Day, day
 
     struct Day
         lines
     end
 
     function day(n)
-        lines = HTTP.open(:GET, "https://adventofcode.com/2020/day/" * string(n) * "/input") do io
-            readlines(io)
+        lines = open("src/day" * string(n) * "-input.txt") do file
+           readlines(file)
         end
 
         return Day(lines)

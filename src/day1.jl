@@ -5,9 +5,9 @@ day1:
 - Date: 2020-12-01
 =#
 
-expenses = open("src/day1-input.txt") do file
-    readlines(file) |> l -> parse.(Int, l)
-end
+using AdventOfCode
+
+expenses = parse.(Int, day(1).lines)
 
 function findn(f, predicate, a, n, imax = length(a), values=())
     if n == 0
