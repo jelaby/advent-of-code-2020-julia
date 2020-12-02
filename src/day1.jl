@@ -26,5 +26,5 @@ function findn(f, predicate, a, n, imax = length(a), values=())
     return nothing
 end
 
-@show findn((*), (args...) -> +(args...) == 2020, expenses, 2)
-@show findn((*), (args...) -> +(args...) == 2020, expenses, 3)
+@show findn((*), (args...) -> sum(args) == 2020, expenses, 2)
+@show findn((*), (args...) -> sum(args) == 2020, expenses, 3)
