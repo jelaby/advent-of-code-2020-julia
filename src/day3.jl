@@ -12,8 +12,6 @@ lines = AoC.lines(3)
 height = length(lines)
 width = length(lines[1])
 
-@show (height, width)
-
 function countCollisions(rightstride, downstride)::Int
     trees = 0
     right = 1
