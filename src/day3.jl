@@ -6,8 +6,6 @@ day3:
 =#
 
 import AoC
-toBoolean(c) = c == '#'
-toBooleans(s) = toBoolean.(s)
 
 lines = AoC.lines(3)
 
@@ -16,11 +14,12 @@ width = length(lines[1])
 
 @show (height, width)
 
-function countCollisions(right::Int,down)::Int
+function countCollisions(rightstride, downstride)::Int
     trees = 0
-    for i::Int = 1:height/down
-        @show ((i-1) * down + 1,(((i-1) * right) % width) + 1)
-        trees += lines[((i-1) * down) + 1][(((i-1) * right) % width) + 1] == '#'
+    for i::Int = 0:height / downstride - 1
+        right = 1 + ((i * rightstride) % width)
+        down = 1 + (i * downstride)
+        trees += lines[down][right] == '#'
     end
     return trees
 end
