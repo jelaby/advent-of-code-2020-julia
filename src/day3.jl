@@ -16,10 +16,10 @@ width = length(lines[1])
 
 function countCollisions(rightstride, downstride)::Int
     trees = 0
-    for i::Int = 0:height / downstride - 1
-        right = 1 + ((i * rightstride) % width)
-        down = 1 + (i * downstride)
+    right = 1
+    for down = 1:downstride:height
         trees += lines[down][right] == '#'
+        right = mod1(right + rightstride, width)
     end
     return trees
 end
