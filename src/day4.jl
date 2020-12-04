@@ -29,13 +29,13 @@ end
 matches(r,s) = match(r,s) != nothing
 
 requiredFields = Dict(
-"byr" => f -> matches(r"^[0-9]{4}$", f) && 1920 ≤ parse(Int, f) ≤ 2002,
-"iyr" => f -> matches(r"^[0-9]{4}$", f) && 2010 ≤ parse(Int, f) ≤ 2020,
-"eyr" => f -> matches(r"^[0-9]{4}$", f) && 2020 ≤ parse(Int, f) ≤ 2030,
-"hgt" => validHeight,
-"hcl" => f -> matches(r"^#[0-9a-f]{6}$", f),
-"ecl" => f -> f ∈ validEyeColours,
-"pid" => f -> matches(r"^[0-9]{9}$", f)
+    "byr" => f -> matches(r"^[0-9]{4}$", f) && 1920 ≤ parse(Int, f) ≤ 2002,
+    "iyr" => f -> matches(r"^[0-9]{4}$", f) && 2010 ≤ parse(Int, f) ≤ 2020,
+    "eyr" => f -> matches(r"^[0-9]{4}$", f) && 2020 ≤ parse(Int, f) ≤ 2030,
+    "hgt" => validHeight,
+    "hcl" => f -> matches(r"^#[0-9a-f]{6}$", f),
+    "ecl" => f -> f ∈ validEyeColours,
+    "pid" => f -> matches(r"^[0-9]{9}$", f)
 )
 
 function databaseDump()
