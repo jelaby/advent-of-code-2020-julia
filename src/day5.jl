@@ -20,7 +20,7 @@ charToBinary(spec::AbstractChar) = @match spec begin
         c => error("Unknown spec char " * c)
     end
 
-toBinary(spec::AbstractString) = string(charToBinary.(collect(spec))...)
+toBinary(spec::AbstractString) = string(charToBinary.(c for c in spec)...)
 
 @test toBinary("BFFFBBF") == "1000110"
 @test toBinary("RLL") == "100"
