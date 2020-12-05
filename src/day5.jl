@@ -6,7 +6,7 @@ day5:
 =#
 
 import AoC
-using Test
+using Test, MLStyle
 
 struct Seat
     row
@@ -14,15 +14,11 @@ struct Seat
     id
 end
 
-function charToBinary(spec::AbstractChar)
-    if spec == 'F' || spec == 'L'
-        return '0'
-    elseif spec == 'B' || spec == 'R'
-        return '1'
-    else
-        error("Unknown spec char " * spec)
+charToBinary(spec::AbstractChar) = @match spec begin
+        'F' || 'L' => '0'
+        'B' || 'R' => '1'
+        c => error("Unknown spec char " * c)
     end
-end
 
 toBinary(spec::AbstractString) = string(charToBinary.(collect(spec))...)
 
