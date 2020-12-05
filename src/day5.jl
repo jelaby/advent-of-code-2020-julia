@@ -24,16 +24,12 @@ function charToBinary(spec::AbstractChar)
     end
 end
 
-function toBinary(spec::AbstractString)
-    string(charToBinary.([c for c in spec])...)
-end
+toBinary(spec::AbstractString) = string(charToBinary.(collect(spec))...)
 
 @test toBinary("BFFFBBF") == "1000110"
 @test toBinary("RLL") == "100"
 
-function specToNumber(spec)
-    parse(Int, toBinary(spec); base=2)
-end
+specToNumber(spec) = parse(Int, toBinary(spec); base = 2)
 
 @test specToNumber("BFFFBBF") == 70
 @test specToNumber("RLL") == 4
