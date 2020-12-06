@@ -8,13 +8,13 @@ day6:
 import AoC
 using Test
 
-function group(lines) :: Vector{Vector{String}}
-    result::Vector{Vector{String}} = []
-    acc::Vector{String} = []
+function group(lines; delim="", T=eltype(lines)) :: Vector{Vector{T}}
+    result::Vector{Vector{T}} = []
+    acc::Vector{T} = []
     for l in lines
-        if l == ""
+        if l == delim
             if !isempty(acc)
-                result = push!(result, acc)
+                push!(result, acc)
             end
             acc = []
         else
@@ -27,6 +27,13 @@ function group(lines) :: Vector{Vector{String}}
     return result
 end
 @test group(["ab", "cd", "", "def", "g"]) == [["ab","cd"], ["def", "g"]]
+@test group(["ab", "cd", "", "def", "g"]; delim="cd") == [["ab"], ["", "def", "g"]]
+@test group(["ab", "cd", "", "def", "g"]; T=AbstractString, delim="cd") == [["ab"], ["", "def", "g"]]
+@test group([1,3,0,3,5]; delim=0) == [[1,3], [3,5]]
+@test group("ab cd def g"; delim=' ') == [['a','b'], ['c','d'], ['d','e','f'], ['g']]
+@inferred group(["ab", "cd", "", "def", "g"])
+@inferred group([1,2,0,3,5])
+@inferred Vector{Vector{AbstractString}} group(["ab", "cd", "", "def", "g"]; T=AbstractString)
 
 countAnswers(group) = length(∪(group...))
 @test countAnswers(["ab", "ad"]) == 3
