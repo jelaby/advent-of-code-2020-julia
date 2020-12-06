@@ -26,47 +26,18 @@ function group(lines) :: Vector{Vector{String}}
     end
     return result
 end
-
 @test group(["ab", "cd", "", "def", "g"]) == [["ab","cd"], ["def", "g"]]
 
-function countAnswers(group :: Vector{String})
-    return length(∪(group...))
-end
-
+countAnswers(group) = length(∪(group...))
 @test countAnswers(["ab", "ad"]) == 3
 
-function countAnswersProperly(group :: Vector{String})
-    return length(∩(group...))
-end
-
+countAnswersProperly(group) = length(∩(group...))
 @test countAnswersProperly(["ab", "ad"]) == 1
 
-function countAllAnswers(lines)
-    return sum(countAnswers.(lines) )
-end
+countAllAnswers(lines) = sum(countAnswers.(lines) )
+@test countAllAnswers(group(["abc" "" "a" "b" "c" "" "ab" "ac" "" "a" "a" "a" "a" "" "b"])) == 11
 
-@test countAllAnswers(group([
-"abc"
-""
-"a"
-"b"
-"c"
-""
-"ab"
-"ac"
-""
-"a"
-"a"
-"a"
-"a"
-""
-"b"
-])) == 11
-
-function countAllAnswersProperly(lines)
-    return sum(countAnswersProperly.(lines) )
-end
-
+countAllAnswersProperly(lines) = sum(countAnswersProperly.(lines) )
 @test countAllAnswersProperly(group(["abc" "" "a" "b" "c" "" "ab" "ac" "" "a" "a" "a" "a" "" "b"])) == 6
 
 @show countAllAnswers(group(AoC.lines(6)))
