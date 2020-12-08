@@ -17,9 +17,10 @@ end
 Compooter(program) = Compooter(program, 1, 0)
 
 struct Instruction
-    code
-    argument
+    code::Symbol
+    argument::AbstractString
 end
+Instruction(code::AbstractString, argument::AbstractString) = Instruction(Symbol(code), argument)
 
 step(c::Compooter; pointer=c.pointer+1, accumulator=c.accumulator) = Compooter(c.program, pointer, accumulator)
 
@@ -27,7 +28,7 @@ execute(c::Compooter, ::Val{:nop}, arg) = step(c)
 execute(c::Compooter, ::Val{:acc}, arg) = step(c; accumulator = c.accumulator + parse(Int, arg))
 execute(c::Compooter, ::Val{:jmp}, arg) = step(c; pointer = c.pointer + parse(Int, arg))
 
-execute(c::Compooter, i::Instruction) = execute(c, Val(Symbol(i.code)), i.argument)
+execute(c::Compooter, i::Instruction) = execute(c, Val(i.code), i.argument)
 execute(c::Compooter) = execute(c, c.program[c.pointer])
 
 example = split("nop +0
