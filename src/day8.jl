@@ -67,13 +67,9 @@ function runProgram(program)
 end
 
 
-function programWhenLoopOccurs(program)
-    return runProgram(program)
-end
-
-
-@test programWhenLoopOccurs(program(example)).accumulator == 5
-@show programWhenLoopOccurs(program(AoC.lines(8))).accumulator
+@test runProgram(program(example)).accumulator == 5
+@test runProgram(program(example)).state == :looped
+@time @show runProgram(program(AoC.lines(8))).accumulator
 
 example2 = split("nop +0
 acc +1
@@ -85,7 +81,7 @@ acc +1
 jmp -4
 acc +6", "\n")
 
-function fixedProgramOutput(program)
+function fixProgram(program)
     for i = 1:length(program)
         if program[i].code == :jmp
             modifiedProgram = [program...]
@@ -106,5 +102,5 @@ function fixedProgramOutput(program)
     error("Program cannot run")
 end
 
-@test fixedProgramOutput(program(example2)).accumulator == 8
-@show fixedProgramOutput(program(AoC.lines(8))).accumulator
+@test fixProgram(program(example2)).accumulator == 8
+@time @show fixProgram(program(AoC.lines(8))).accumulator
