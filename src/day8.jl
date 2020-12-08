@@ -12,9 +12,10 @@ struct Compooter
     program
     pointer
     accumulator
+    state
 end
 
-Compooter(program) = Compooter(program, 1, 0)
+Compooter(program) = Compooter(program, 1, 0, :running)
 
 struct Instruction
     code::Symbol
@@ -22,7 +23,13 @@ struct Instruction
 end
 Instruction(code::AbstractString, argument::AbstractString) = Instruction(Symbol(code), argument)
 
-step(c::Compooter; pointer=c.pointer+1, accumulator=c.accumulator) = Compooter(c.program, pointer, accumulator)
+function step(c::Compooter; pointer=c.pointer+1, accumulator=c.accumulator, state=c.state)
+    if 1 ≤ pointer ≤ length(c.program)
+        Compooter(c.program, pointer, accumulator, state)
+    else
+        Compooter(c.program, pointer, accumulator, :completed)
+    end
+end
 
 execute(c::Compooter, ::Val{:nop}, arg) = step(c)
 execute(c::Compooter, ::Val{:acc}, arg) = step(c; accumulator = c.accumulator + parse(Int, arg))
@@ -44,19 +51,60 @@ acc +6", "\n")
 instruction(op::AbstractString) = Instruction(split(op, " ")...)
 program(program::Array{<:AbstractString}) = instruction.(program)
 
-function programWhenLoopOccurs(program)
+function runProgram(program)
     computer = Compooter(program)
     visitedInstructions::Set{Int} = Set()
 
-    while true
+    while computer.state == :running
         if computer.pointer ∈ visitedInstructions
-            return computer
+            return step(computer; state=:looped)
         end
         push!(visitedInstructions, computer.pointer)
         computer = execute(computer)
     end
+
+    return computer
+end
+
+
+function programWhenLoopOccurs(program)
+    return runProgram(program)
 end
 
 
 @test programWhenLoopOccurs(program(example)).accumulator == 5
 @show programWhenLoopOccurs(program(AoC.lines(8))).accumulator
+
+example2 = split("nop +0
+acc +1
+jmp +4
+acc +3
+jmp -3
+acc -99
+acc +1
+jmp -4
+acc +6", "\n")
+
+function fixedProgramOutput(program)
+    for i = 1:length(program)
+        if program[i].code == :jmp
+            modifiedProgram = [program...]
+            modifiedProgram[i] = Instruction(:nop, program[i].argument)
+        elseif program[i].code == :nop
+            modifiedProgram = [program...]
+            modifiedProgram[i] = Instruction(:jmp, program[i].argument)
+        else
+            modifiedProgram = nothing
+        end
+        if modifiedProgram ≠ nothing
+            computer = runProgram(modifiedProgram)
+            if computer.state == :completed
+                return computer
+            end
+        end
+    end
+    error("Program cannot run")
+end
+
+@test fixedProgramOutput(program(example2)).accumulator == 8
+@show fixedProgramOutput(program(AoC.lines(8))).accumulator
