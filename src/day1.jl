@@ -7,7 +7,7 @@ day1:
 
 import AoC
 
-expenses = parse.(Int, AoC.lines(1))
+expenses = AoC.ints(1)
 
 function findn(f, predicate, a, n, imax = length(a), values=())
     if n == 0

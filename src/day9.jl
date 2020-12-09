@@ -37,8 +37,8 @@ function findWeakness(message; preambleLength=25)
     return minimum(block) + maximum(block)
 end
 
-@test findNumberNotFromPreamble(parse.(Int, AoC.exampleLines(9,1)); preambleLength=5) == 127
-@time @show findNumberNotFromPreamble(parse.(Int, AoC.lines(9)))
+@test findNumberNotFromPreamble(AoC.exampleInts(9,1); preambleLength=5) == 127
+@time @show findNumberNotFromPreamble(AoC.ints(9))
 
-@test findWeakness(parse.(Int, AoC.exampleLines(9,1)); preambleLength=5) == 62
-@time @show findWeakness(parse.(Int, AoC.lines(9)))
+@test findWeakness(AoC.exampleInts(9,1); preambleLength=5) == 62
+@time @show findWeakness(AoC.ints(9))
