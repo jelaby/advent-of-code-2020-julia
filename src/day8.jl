@@ -8,14 +8,16 @@ day8:
 import AoC
 using Test
 
+@enum ProgramState running looped completed
+
 struct Compooter
     program
     pointer
     accumulator
-    state
+    state::ProgramState
 end
 
-Compooter(program) = Compooter(program, 1, 0, :running)
+Compooter(program) = Compooter(program, 1, 0, running)
 
 struct Instruction
     code::Symbol
@@ -27,7 +29,7 @@ function step(c::Compooter; pointer=c.pointer+1, accumulator=c.accumulator, stat
     if 1 ≤ pointer ≤ length(c.program)
         Compooter(c.program, pointer, accumulator, state)
     else
-        Compooter(c.program, pointer, accumulator, :completed)
+        Compooter(c.program, pointer, accumulator, completed)
     end
 end
 
@@ -55,9 +57,9 @@ function runProgram(program)
     computer = Compooter(program)
     visitedInstructions::Set{Int} = Set()
 
-    while computer.state == :running
+    while computer.state == running
         if computer.pointer ∈ visitedInstructions
-            return step(computer; state=:looped)
+            return step(computer; state=looped)
         end
         push!(visitedInstructions, computer.pointer)
         computer = execute(computer)
@@ -68,7 +70,7 @@ end
 
 
 @test runProgram(program(example)).accumulator == 5
-@test runProgram(program(example)).state == :looped
+@test runProgram(program(example)).state == looped
 @time @show runProgram(program(AoC.lines(8))).accumulator
 
 example2 = split("nop +0
@@ -94,7 +96,7 @@ function fixProgram(program)
         end
         if modifiedProgram ≠ nothing
             computer = runProgram(modifiedProgram)
-            if computer.state == :completed
+            if computer.state == completed
                 return computer
             end
         end
@@ -104,3 +106,5 @@ end
 
 @test fixProgram(program(example2)).accumulator == 8
 @time @show fixProgram(program(AoC.lines(8))).accumulator
+
+@show summary(ProgramState), ProgramState, summary(completed), completed
