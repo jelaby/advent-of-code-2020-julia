@@ -13,7 +13,8 @@ julia>
 """
 module AoC
 
-    export lines
+    export lines, exampleLines
 
-    lines(day::Int) = open(readlines, "src/day" * string(day) * "-input.txt")
+    lines(day) = open(readlines, "src/day" * string(day) * "-input.txt")
+    exampleLines(day, n) = open(readlines, "src/day" * string(day) * "-example-" * string(n) * ".txt")
 end
