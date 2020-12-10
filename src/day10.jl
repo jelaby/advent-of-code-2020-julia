@@ -21,6 +21,19 @@ end
 
 @show part1(AoC.ints(10))
 
+function combinationsUntyped(values, current, target, cache=Dict())
+    return get!(cache, current) do
+        if isempty(values)
+            return 1
+        end
+
+        return sum(combinationsUntyped(values[i+1:end], values[i], target, cache)
+                for i in 1:min(3,length(values))
+                    if current + 3 ≥ values[i])
+    end
+end
+combinationsUntyped(values) = combinationsUntyped(sort(values), 0, maximum(values) + 3)
+
 function combinations(values::Vector{T}, current::T, target::T, cache::Dict{T,T}=Dict{T,T}()) where T
     return get!(cache, current) do
         if isempty(values)
@@ -33,11 +46,7 @@ function combinations(values::Vector{T}, current::T, target::T, cache::Dict{T,T}
     end
 end
 
-function combinations(values)
-    values = sort(values)
-    target = maximum(values) + 3
-    return combinations(values, 0, target)
-end
+combinations(values) = combinations(sort(values), 0, maximum(values) + 3)
 
 function combinations2(values::Vector{T}) where T
     values = sort(values);
@@ -59,7 +68,7 @@ function combinations2(values::Vector{T}) where T
     return previous[1]
 end
 
-function combinations2(values::Vector{T}) where T
+function combinations2(values)
     values = sort(values);
 
     previous = [1,0,0]
@@ -84,7 +93,7 @@ function combinations2(values::Vector{T}) where T
     return previous[1]
 end
 
-function combinations3(values::Vector{T}) where T
+function combinations3(values)
     values = sort(values);
 
     prev1,prev2,prev3 = 1,0,0
@@ -111,7 +120,7 @@ function combinations3(values::Vector{T}) where T
     return prev1
 end
 
-for c in [combinations, combinations2, combinations3]
+for c in [combinationsUntyped, combinations, combinations2, combinations3]
 @show c
 @test c([1,2,3]) == 4
 @test c(AoC.exampleInts(10,1)) == 8
@@ -119,7 +128,7 @@ for c in [combinations, combinations2, combinations3]
 end
 
 @time input = AoC.ints(10)
-for c in [combinations, combinations2, combinations3]
+for c in [combinationsUntyped, combinations, combinations2, combinations3]
 @show c, c(input)
 @time for _ in 1:10000 c(input) end
 end
