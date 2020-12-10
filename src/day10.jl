@@ -48,25 +48,24 @@ end
 
 combinations(values) = combinations(sort(values), 0, maximum(values) + 3)
 
-function combinations2(values::Vector{T}) where T
-    values = sort(values);
+function combinationsForLoop(values::Vector{T}, current::T, target::T, cache::Dict{T,T}=Dict{T,T}()) where T
+    return get!(cache, current) do
+        if isempty(values)
+            return 1
+        end
 
-    previous = [1,0,0]
-
-    for i in 1:length(values)
-        combinations = 0
-
-        for b in 1:3
-            if values[i-b] + 3 ≥ values[i]
-                combinations += previous[b]
+        total = 0
+        for i in 1:min(3,length(values))
+            if current + 3 ≥ values[i]
+                total += combinationsForLoop(values[i+1:end], values[i], target, cache)
             end
         end
 
-        previous = [combinations, previous[1:2]...]
+        return total
     end
-
-    return previous[1]
 end
+
+combinationsForLoop(values) = combinationsForLoop(sort(values), 0, maximum(values) + 3)
 
 function combinations2(values)
     values = sort(values);
@@ -120,7 +119,8 @@ function combinations3(values)
     return prev1
 end
 
-for c in [combinationsUntyped, combinations, combinations2, combinations3]
+implementations = [combinationsUntyped, combinations, combinationsForLoop, combinations2, combinations3]
+for c in implementations
 @show c
 @test c([1,2,3]) == 4
 @test c(AoC.exampleInts(10,1)) == 8
@@ -128,7 +128,7 @@ for c in [combinationsUntyped, combinations, combinations2, combinations3]
 end
 
 @time input = AoC.ints(10)
-for c in [combinationsUntyped, combinations, combinations2, combinations3]
+for c in implementations
 @show c, c(input)
 @time for _ in 1:10000 c(input) end
 end
