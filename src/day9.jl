@@ -12,7 +12,7 @@ using Test
 function findNumberNotFromPreamble(message; preambleLength=25)
     for i in (preambleLength+1):length(message)
         previous25 = message[(i-preambleLength):i-1]
-        if message[i] ∉ [a + b for a in previous25, b in previous25]
+        if message[i] ∉ (a + b for a in previous25, b in previous25)
             return message[i]
         end
     end
