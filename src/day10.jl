@@ -39,8 +39,87 @@ function combinations(values)
     return combinations(values, 0, target)
 end
 
-@test combinations([1,2,3]) == 4
-@test combinations(AoC.exampleInts(10,1)) == 8
-@test combinations(AoC.exampleInts(10,2)) == 19208
+function combinations2(values::Vector{T}) where T
+    values = sort(values);
 
-@show @time combinations(AoC.ints(10))
+    previous = [1,0,0]
+
+    for i in 1:length(values)
+        combinations = 0
+
+        for b in 1:3
+            if values[i-b] + 3 ≥ values[i]
+                combinations += previous[b]
+            end
+        end
+
+        previous = [combinations, previous[1:2]...]
+    end
+
+    return previous[1]
+end
+
+function combinations2(values::Vector{T}) where T
+    values = sort(values);
+
+    previous = [1,0,0]
+
+    for i in 1:length(values)
+        combinations = 0
+
+        for b in 1:3
+            if values[i-b] + 3 ≥ values[i]
+                combinations += previous[b]
+            else
+                break
+            end
+        end
+
+        for b in 3:-1:2
+            previous[b] = previous[b-1]
+        end
+        previous[1] = combinations
+    end
+
+    return previous[1]
+end
+
+function combinations3(values::Vector{T}) where T
+    values = sort(values);
+
+    prev1,prev2,prev3 = 1,0,0
+
+    for i in 1:length(values)
+        combinations = 0
+
+        value = values[i]
+        if values[i-1] + 3 ≥ value
+            combinations += prev1
+
+            if values[i-2] + 3 ≥ value
+                combinations += prev2
+
+                if values[i-3] + 3 ≥ value
+                    combinations += prev3
+                end
+            end
+        end
+
+        prev1,prev2,prev3 = combinations,prev1,prev2
+    end
+
+    return prev1
+end
+
+for c in [combinations, combinations2, combinations3]
+@show c
+@test c([1,2,3]) == 4
+@test c(AoC.exampleInts(10,1)) == 8
+@test c(AoC.exampleInts(10,2)) == 19208
+end
+
+@time input = AoC.ints(10)
+for c in [combinations, combinations2, combinations3]
+@show c, c(input)
+@time for _ in 1:10000 c(input) end
+end
