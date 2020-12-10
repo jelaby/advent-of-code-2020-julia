@@ -27,14 +27,9 @@ function combinations(values, current, target, cache=Dict())
             return 1
         end
 
-        extra = 0
-
-        for i = 1:min(3,length(values))
-            if (current + 3) ≥ values[i]
-                extra = extra + combinations(values[1+i:end], values[i], target, cache)
-            end
-        end
-        return extra
+        return sum(combinations(values[i+1:end], values[i], target, cache)
+                for i in 1:min(3,length(values))
+                    if current + 3 ≥ values[i])
     end
 end
 
@@ -48,4 +43,4 @@ end
 @test combinations(AoC.exampleInts(10,1)) == 8
 @test combinations(AoC.exampleInts(10,2)) == 19208
 
-@show combinations(AoC.ints(10))
+@show @time combinations(AoC.ints(10))
