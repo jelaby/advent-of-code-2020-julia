@@ -21,7 +21,7 @@ end
 
 @show part1(AoC.ints(10))
 
-function combinations(values, current, target, cache=Dict())
+function combinations(values::Vector{T}, current::T, target::T, cache::Dict{T,T}=Dict{T,T}()) where T
     return get!(cache, current) do
         if isempty(values)
             return 1
