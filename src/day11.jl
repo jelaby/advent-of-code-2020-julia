@@ -26,23 +26,17 @@ offsets=[CartesianIndex(x,y) for x in -1:1, y in -1:1 if x ≠ 0 || y ≠ 0]
 countOccupied(plan, i) = count(o->isOccupied(get(plan, i+o, floor)), offsets)
 @test countOccupied([occupied occupied occupied;occupied occupied occupied], CartesianIndex(1,2)) == 5
 
-calculateSeat(seat::SeatState, plan, i) = calculateSeat(seat, countOccupied(plan, i))
-function calculateSeat(seat::SeatState, count::Number)
+function calculateSeat(seat::SeatState, plan, i)
     if isFloor(seat)
         return floor
-    elseif isEmpty(seat) && count == 0
+    elseif isEmpty(seat) && countOccupied(plan, i) == 0
         return occupied
-    elseif isOccupied(seat) && count ≥ 4
+    elseif isOccupied(seat) && countOccupied(plan, i) ≥ 4
         return empty
     else
         return seat
     end
 end
-@test calculateSeat(floor, 3) == floor
-@test calculateSeat(empty, 0) == occupied
-@test calculateSeat(empty, 1) == empty
-@test calculateSeat(occupied, 4) == empty
-@test calculateSeat(occupied, 3) == occupied
 
 function calculateOccupation(plan::Array)
     newPlan = copy(plan)
