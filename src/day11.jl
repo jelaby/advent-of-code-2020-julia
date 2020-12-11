@@ -39,7 +39,7 @@ function calculateSeat(seat::SeatState, plan, i)
 end
 
 function calculateOccupation(plan::Array)
-    newPlan = copy(plan)
+    newPlan = similar(plan)
     for i in CartesianIndices(plan)
         newPlan[i] = calculateSeat(plan[i], plan, i)
     end
