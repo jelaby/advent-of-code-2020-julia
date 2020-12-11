@@ -75,11 +75,11 @@ end
 
 occupiedSeats(plan::Vector) = count(isOccupied, findSteadyState(seatPlan(plan)))
 
-show("Testing...")
+println("Testing...")
 @test occupiedSeats(["."]) == 0
 @test occupiedSeats(["L"]) == 1
 @test occupiedSeats(["#"]) == 1
 @test occupiedSeats(["..",".."]) == 0
 @test occupiedSeats(AoC.exampleLines(11,1)) == 37
-show("Starting...")
+println("Starting...")
 @show occupiedSeats(AoC.lines(11))
