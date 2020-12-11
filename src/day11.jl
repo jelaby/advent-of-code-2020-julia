@@ -7,7 +7,7 @@ day11:
 
 
 import AoC
-using Test, MLStyle
+using Test
 
 @enum SeatState floor=Int('.') empty=Int('L') occupied=Int('#')
 SeatState(s::AbstractChar) = SeatState(Int(s))
@@ -26,12 +26,6 @@ offsets=[CartesianIndex(x,y) for x in -1:1, y in -1:1 if x ≠ 0 || y ≠ 0]
 countOccupied(plan, i) = count(o->isOccupied(get(plan, i+o, floor)), offsets)
 @test countOccupied([occupied occupied occupied;occupied occupied occupied], CartesianIndex(1,2)) == 5
 
-#calculateSeat(seat::SeatState, plan, i) = @match (seat, countOccupied(plan,i)) begin
-#    (isFloor(_), _) => floor;
-#    (isEmpty(_), 0) => occupied;
-#    (isOccupied(_), ≥(_,4) => empty;
-#    (s, _) => s
-#end
 calculateSeat(seat::SeatState, plan, i) = calculateSeat(seat, countOccupied(plan, i))
 function calculateSeat(seat::SeatState, count::Number)
     if isFloor(seat)
@@ -59,13 +53,12 @@ function calculateOccupation(plan::Array)
 end
 @test calculateOccupation([empty empty; empty empty]) == [occupied occupied;occupied occupied]
 @test calculateOccupation([occupied occupied; occupied occupied]) == [occupied occupied;occupied occupied]
-#@test calculateOccupation([occupied occupied occupied; occupied occupied occupied]) == [occupied empty occupied;occupied empty occupied]
+@test calculateOccupation([occupied occupied occupied; occupied occupied occupied]) == [occupied empty occupied;occupied empty occupied]
 @test calculateOccupation(seatPlan(AoC.exampleLines(11,1))) == seatPlan(AoC.exampleLines(11,2))
 @test calculateOccupation(seatPlan(AoC.exampleLines(11,2))) == seatPlan(AoC.exampleLines(11,3))
 
 function findSteadyState(plan)
     newPlan = calculateOccupation(plan)
-    @show plan, newPlan
     if (plan == newPlan)
         return plan
     else
@@ -82,4 +75,4 @@ println("Testing...")
 @test occupiedSeats(["..",".."]) == 0
 @test occupiedSeats(AoC.exampleLines(11,1)) == 37
 println("Starting...")
-@show occupiedSeats(AoC.lines(11))
+@show @time occupiedSeats(AoC.lines(11))

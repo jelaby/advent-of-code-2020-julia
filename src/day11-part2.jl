@@ -7,7 +7,7 @@ day11:
 
 
 import AoC
-using Test, MLStyle
+using Test
 
 @enum SeatState floor=Int('.') empty=Int('L') occupied=Int('#')
 SeatState(s::AbstractChar) = SeatState(Int(s))
@@ -40,12 +40,6 @@ countOccupied(plan, i) = count(o->countOccupied(plan,i,o), offsets)
 @test countOccupied([occupied empty occupied;empty occupied occupied], CartesianIndex(1,1)) == 1
 @test countOccupied([occupied empty empty;empty empty occupied;empty occupied empty], CartesianIndex(1,1)) == 0
 
-#calculateSeat(seat::SeatState, plan, i) = @match (seat, countOccupied(plan,i)) begin
-#    (isFloor(_), _) => floor;
-#    (isEmpty(_), 0) => occupied;
-#    (isOccupied(_), ≥(_,4) => empty;
-#    (s, _) => s
-#end
 calculateSeat(seat::SeatState, plan, i) = calculateSeat(seat, countOccupied(plan, i))
 function calculateSeat(seat::SeatState, count::Number)
     if isFloor(seat)
@@ -115,4 +109,4 @@ println("Testing...")
 @test occupiedSeats(["..",".."]) == 0
 @test occupiedSeats(AoC.exampleLines(11,1)) == 26
 println("Starting...")
-@show occupiedSeats(AoC.lines(11))
+@show @time occupiedSeats(AoC.lines(11))
