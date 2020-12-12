@@ -22,14 +22,7 @@ struct Ship
     Ship(waypoint::Vector, position::Vector) = new(waypoint, position)
 end
 
-function rotate(ship, direction, degrees)
-    waypoint = ship.waypoint
-    for _ in 90:90:degrees
-        waypoint = direction * waypoint
-    end
-    return Ship(waypoint, ship.position)
-end
-
+rotate(ship, direction, degrees::T) where T = Ship(direction^floor(T, degrees/90) * ship.waypoint, ship.position)
 navigate(ship, direction, distance) = Ship(ship.waypoint + (distance * direction), ship.position)
 navigate(ship, ::Val{:N}, arg) = navigate(ship, north, arg)
 navigate(ship, ::Val{:E}, arg) = navigate(ship, east, arg)

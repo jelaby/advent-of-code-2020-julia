@@ -22,14 +22,7 @@ struct Ship
     Ship(heading::Array, position::Array) = new(sign.(heading), position)
 end
 
-function rotate(ship, direction, degrees)
-    heading = ship.heading
-    for _ in 90:90:degrees
-        heading = heading * direction
-    end
-    return Ship(heading, ship.position)
-end
-
+rotate(ship, direction, degrees::T) where T = Ship(ship.heading * direction ^ floor(T, degrees/90), ship.position)
 navigate(ship, direction, distance) = Ship(ship.heading, ship.position + (distance*direction))
 navigate(ship, ::Val{:N}, arg) = navigate(ship, north, arg)
 navigate(ship, ::Val{:E}, arg) = navigate(ship, east, arg)
