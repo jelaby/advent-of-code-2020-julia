@@ -8,25 +8,25 @@ day12:
 using Test
 import AoC
 
-north=[1 0]
-east=[0 1]
-south=[-1 0]
-west=[0 -1]
+north=[0,1]
+east=[1,0]
+south=[0,-1]
+west=[-1,0]
 
 left=[0 -1;1 0]
 right=[0 1;-1 0]
 
 struct Ship
-    waypoint::Array
-    position::Array
-    Ship(waypoint::Array, position::Array) = new(waypoint, position)
+    waypoint::Vector
+    position::Vector
+    Ship(waypoint::Vector, position::Vector) = new(waypoint, position)
 end
-Ship() = Ship([1 10],[0 0])
+Ship() = Ship([10,1], [0,0])
 
 function rotate(ship, direction, degrees)
     waypoint = ship.waypoint
     for _ in 90:90:degrees
-        waypoint = waypoint * direction
+        waypoint = direction * waypoint
     end
     return Ship(waypoint, ship.position)
 end
@@ -52,6 +52,6 @@ end
 
 manhattan(a) = sum(abs.(a))
 
-@test navigate(AoC.exampleLines(12,1)).position == [-72 214]
+@test navigate(AoC.exampleLines(12,1)).position == [214,-72]
 @test manhattan(navigate(AoC.exampleLines(12,1)).position) == 286
 @show manhattan(navigate(AoC.lines(12)).position)
