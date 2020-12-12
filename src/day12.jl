@@ -21,7 +21,6 @@ struct Ship
     position::Array
     Ship(heading::Array, position::Array) = new(sign.(heading), position)
 end
-Ship() = Ship(east,[0 0])
 
 function rotate(ship, direction, degrees)
     heading = ship.heading
@@ -43,7 +42,7 @@ navigate(ship, ::Val{:F}, arg) = navigate(ship, ship.heading, arg)
 instruction(t) = (Val(Symbol(t[1:1])), parse(Int, t[2:end]))
 
 function navigate(lines)
-    ship = Ship()
+    ship = Ship(east, [0 0])
     for line in lines
         ship = navigate(ship, instruction(line)...)
     end

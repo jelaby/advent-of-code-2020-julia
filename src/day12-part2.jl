@@ -21,7 +21,6 @@ struct Ship
     position::Vector
     Ship(waypoint::Vector, position::Vector) = new(waypoint, position)
 end
-Ship() = Ship([10,1], [0,0])
 
 function rotate(ship, direction, degrees)
     waypoint = ship.waypoint
@@ -43,7 +42,7 @@ navigate(ship, ::Val{:F}, arg) = Ship(ship.waypoint, ship.position + (arg * ship
 instruction(t) = (Val(Symbol(t[1:1])), parse(Int, t[2:end]))
 
 function navigate(lines)
-    ship = Ship()
+    ship = Ship([10,1], [0,0])
     for line in lines
         ship = navigate(ship, instruction(line)...)
     end
