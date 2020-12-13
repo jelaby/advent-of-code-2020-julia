@@ -6,16 +6,16 @@ day13:
 =#
 
 import AoC
-using Test
-
 
 module Part1
 
+    using Test
+
     findEarliestTimestamp(file) = findEarliestTimestamp(parseFile(file))
     parseFile(name) = open(name) do file
-        (parse(Int, readline(file)), parseTimes(readline(file)))
+        (parse(Int, readline(file)), parseBuss(readline(file)))
     end
-    parseTimes(line) = parse.(Int, filter(item->item!="x", split(line,",")))
+    parseBuss(line) = parse.(Int, filter(item->item!="x", split(line,",")))
 
     nextBus(time, busses) = sort(busses; by=bus->bus-mod1(time,bus))[1]
     nextBus(name) = nextBus(parseFile(name)...)
@@ -29,48 +29,44 @@ module Part1
     end
     busInfo(name) = busInfo(parseFile(name)...)
 
+    @test parseFile("src/day13-example-1.txt") == (939, [7,13,59,31,19])
+    @test busInfo("src/day13-example-1.txt") == (59, 5)
+
 end
-@test Part1.parseFile("src/day13-example-1.txt") == (939, [7,13,59,31,19])
-@test Part1.busInfo("src/day13-example-1.txt") == (59, 5)
 
 @show (*)(Part1.busInfo("src/day13-input.txt")...)
 
 module Part2
 
-    abstract type AbstractTime end
-    struct MissingTime <: AbstractTime end
-    struct Time <: AbstractTime
+    using Test
+
+    abstract type AbstractBus end
+    struct AnyBus <: AbstractBus end
+    struct Bus <: AbstractBus
         offset
-        time
+        number
     end
-    max(a::Time, b::Time) = a.time > b.time ? a : b
-    max(a::MissingTime, b::Time) = b
-    max(a::Time, b::MissingTime) = a
-    max(a::MissingTime, b::MissingTime) = a
 
-    isPresent(::Time) = true
-    isPresent(::MissingTime) = false
+    timeStep(bus::Bus) = bus.number
+    timeStep(bus::AnyBus) = 1
+    timeStepProduct(busses) = mapreduce(timeStep, *, busses)
 
-    parseTime(offset, t)::AbstractTime = t=="x" ? MissingTime() : Time(offset, parse(Int, t))
+    parseBus(offset, number) = number=="x" ? AnyBus() : Bus(offset, parse(Int, number))
+    @test parseBus(3, "x") == AnyBus()
+    @test parseBus(4, "6") == Bus(4, 6)
 
     readFile(name) = open(name) do f
         readline(f)
         s = split(readline(f), ",")
-        return [parseTime(n-1, s[n]) for n in 1:length(s)]
+        return [parseBus(n-1, s[n]) for n in 1:length(s)]
     end
 
-    competitionAnswer(name::AbstractString; kwargs...) = competitionAnswer(readFile(name); kwargs...)
+    competitionAnswer(name::AbstractString) = competitionAnswer(readFile(name))
 
-    product(args) = reduce(*, args)
-    timeStep(time::Time) = time.time
-    timeStep(time::MissingTime) = 1
-    timeStepProduct(times) = mapreduce(timeStep, *, times)
+    function competitionAnswer(times)
+        time = 0
 
-    function competitionAnswer(times::Array; hint=0)
-
-        time = times[1].time
-
-        for i in 2:length(times)
+        for i in 1:length(times)
             while !isAnswer(time, times[1:i])
                 time+=timeStepProduct(times[1:i-1])
             end
@@ -79,29 +75,24 @@ module Part2
         return time
     end
 
-    function isAnswer(t, times)
-        for time in times
-            if !arrivesAt(time, t)
+    function isAnswer(t, buses)
+        for bus in buses
+            if !isAnswerForBus(t, bus)
                 return false
             end
         end
         return true
     end
 
-    arrivesAt(t, time::Time) = (t + time.offset) % time.time == 0
-    arrivesAt(t, time::MissingTime) = true
+    isAnswerForBus(t, bus::Bus) = (t + bus.offset) % bus.number == 0
+    isAnswerForBus(t, bus::AnyBus) = true
 
-    using Test
-
-@test Part2.parseTime(3, "x") == Part2.MissingTime()
-@test Part2.parseTime(4, "6") == Part2.Time(4, 6)
-@test Part2.competitionAnswer([Time(0,2), Time(1,3)]) == 2
-@test Part2.competitionAnswer([Time(0,2), Time(1,3), Time(2,5)]) == 8
-@test Part2.competitionAnswer([Time(0,17), MissingTime(), Time(2,13), Time(3,19)]) == 3417
-@test Part2.competitionAnswer("src/day13-example-1.txt"; hint=1000000) == 1068781
+    @test competitionAnswer([Bus(0,2), Bus(1,3)]) == 2
+    @test competitionAnswer([Bus(0,2), Bus(1,3), Bus(2,5)]) == 8
+    @test competitionAnswer([Bus(0,17), AnyBus(), Bus(2,13), Bus(3,19)]) == 3417
+    @test competitionAnswer("src/day13-example-1.txt") == 1068781
 
 end
 
-
 println("Starting...")
-@show Part2.competitionAnswer("src/day13-input.txt"; hint=100000000000000)
+@show Part2.competitionAnswer("src/day13-input.txt")
