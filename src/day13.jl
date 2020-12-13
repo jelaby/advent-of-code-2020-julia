@@ -48,7 +48,10 @@ module Part2
     max(a::Time, b::MissingTime) = a
     max(a::MissingTime, b::MissingTime) = a
 
-    parseTime(offset, t) = t=="x" ? MissingTime() : Time(offset, parse(Int, t))
+    isPresent(::Time) = true
+    isPresent(::MissingTime) = false
+
+    parseTime(offset, t)::AbstractTime = t=="x" ? MissingTime() : Time(offset, parse(Int, t))
 
     readFile(name) = open(name) do f
         readline(f)
@@ -58,17 +61,18 @@ module Part2
 
     competitionAnswer(name::AbstractString; kwargs...) = competitionAnswer(readFile(name); kwargs...)
 
-    function competitionAnswer(times::Array; limit=_->true, startTime=0)
-        stepTime = mapreduce(identity, max, times)
-        @show stepTime
+    product(args) = reduce(*, args)
+    timeStep(time::Time) = time.time
+    timeStep(time::MissingTime) = 1
+    timeStepProduct(times) = mapreduce(timeStep, *, times)
 
+    function competitionAnswer(times::Array; hint=0)
 
-        time = stepTime.time - stepTime.offset
-        @assert (time+stepTime.offset)%stepTime.time == 0
-        while !isAnswer(time, times)
-            time += stepTime.time
-            if !limit(time)
-                error("Exceeded limit time "*string(time))
+        time = times[1].time
+
+        for i in 2:length(times)
+            while !isAnswer(time, times[1:i])
+                time+=timeStepProduct(times[1:i-1])
             end
         end
 
@@ -84,18 +88,20 @@ module Part2
         return true
     end
 
-    arrivesAt(time::Time, t) = (t + time.offset) % time.time == 0
-    arrivesAt(time::MissingTime, t) = true
+    arrivesAt(t, time::Time) = (t + time.offset) % time.time == 0
+    arrivesAt(t, time::MissingTime) = true
 
     using Test
 
 @test Part2.parseTime(3, "x") == Part2.MissingTime()
 @test Part2.parseTime(4, "6") == Part2.Time(4, 6)
+@test Part2.competitionAnswer([Time(0,2), Time(1,3)]) == 2
+@test Part2.competitionAnswer([Time(0,2), Time(1,3), Time(2,5)]) == 8
 @test Part2.competitionAnswer([Time(0,17), MissingTime(), Time(2,13), Time(3,19)]) == 3417
-@test Part2.competitionAnswer("src/day13-example-1.txt"; limit=t->t ≤ 1068781*2) == 1068781
+@test Part2.competitionAnswer("src/day13-example-1.txt"; hint=1000000) == 1068781
 
 end
 
 
 println("Starting...")
-@show Part2.competitionAnswer("src/day13-input.txt")
+@show Part2.competitionAnswer("src/day13-input.txt"; hint=100000000000000)
