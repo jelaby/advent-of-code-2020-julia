@@ -81,8 +81,8 @@ module Part2
 
         value = parse(UInt64, arg)
 
-        for n in 0:(1<<(count_ones(c.floatMask)))-1
-            c.mem[(index & ~c.floatMask) | c.orMask | (spreadBits(n, c.floatMask))] = value
+        for i in applyMask(index, c.orMask, c.floatMask)
+            c.mem[i] = value
         end
     end
 
@@ -99,14 +99,19 @@ module Part2
         end
         return value
     end
-    @test spreadBits(0x01, 0x01) == 0x01
-    @test spreadBits(0x01, 0x02) == 0x02
+    @test spreadBits(0x00, 0x05) == 0x00
     @test spreadBits(0x01, 0x05) == 0x01
     @test spreadBits(0x02, 0x06) == 0x04
     @test spreadBits(0x03, 0x05) == 0x05
+    @test spreadBits(0x00, 0x06) == 0x00
     @test spreadBits(0x01, 0x06) == 0x02
     @test spreadBits(0x02, 0x06) == 0x04
     @test spreadBits(0x03, 0x06) == 0x06
+
+    applyMask(index, orMask, floatMask) =
+        ((index & ~floatMask) | orMask | (spreadBits(n, floatMask))
+            for n in 0:( 1<<(count_ones(floatMask)) ) - 1)
+    @test [x for x in applyMask(42, 18, 33)] == [26, 27, 58, 59]
 
     run(program::Vector) = run(command.(program))
     function run(program::Vector{Command})
