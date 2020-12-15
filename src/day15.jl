@@ -14,13 +14,12 @@ module Part1
 
     function nthNumberSpoken(numbers::Array{T}, n::T) where T<:Number
         turns = Dict{T,T}()
-        previousTurns = Dict{T,T}()
-        previousNumber::T = 0
-        for i = 1:n
+        number::T = 0
+        previousTurn::T = 0
+        for i = 1:n ::T
             if i ≤ length(numbers)
                 number = numbers[i]
             else
-                previousTurn = get(previousTurns, previousNumber, 0)
                 if previousTurn == 0
                     number = 0
                 else
@@ -28,11 +27,11 @@ module Part1
                 end
             end
 
-            previousTurns[number] = get(turns, number, 0)
+            temp = previousTurn
+            previousTurn = get(turns, number, 0::T)
             turns[number] = i
-            previousNumber = number
         end
-        return previousNumber
+        return number
     end
 
     nthNumberSpoken(numbers::AbstractString, n) = nthNumberSpoken(parse.(Int, split(numbers,",")), n)
