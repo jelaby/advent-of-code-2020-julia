@@ -12,10 +12,10 @@ module Part1
     using Test
 
 
-    function nthNumberSpoken(numbers::Array{<:Number}, n)
-        turns = Dict{Int,Int}()
-        previousTurns = Dict{Int,Int}()
-        result = zeros(Int, n)
+    function nthNumberSpoken(numbers::Array{T}, n::T) where T<:Number
+        turns = Dict{T,T}()
+        previousTurns = Dict{T,T}()
+        result = zeros(T, n)
         for i = 1:n
             if i ≤ length(numbers)
                 number = numbers[i]
