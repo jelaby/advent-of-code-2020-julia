@@ -15,12 +15,11 @@ module Part1
     function nthNumberSpoken(numbers::Array{T}, n::T) where T<:Number
         turns = Dict{T,T}()
         previousTurns = Dict{T,T}()
-        result = Array{T}(undef, n)
+        previousNumber::T = 0
         for i = 1:n
             if i ≤ length(numbers)
                 number = numbers[i]
             else
-                previousNumber = result[i-1]
                 previousTurn = get(previousTurns, previousNumber, 0)
                 if previousTurn == 0
                     number = 0
@@ -31,9 +30,9 @@ module Part1
 
             previousTurns[number] = get(turns, number, 0)
             turns[number] = i
-            result[i] = number
+            previousNumber = number
         end
-        return result[end]
+        return previousNumber
     end
 
     nthNumberSpoken(numbers::AbstractString, n) = nthNumberSpoken(parse.(Int, split(numbers,",")), n)
@@ -53,4 +52,4 @@ module Part1
 end
 
 @show Part1.nthNumberSpoken(lines(15), 2020)
-@show Part1.nthNumberSpoken(lines(15), 30000000)
+@show @time Part1.nthNumberSpoken(lines(15), 30000000)
