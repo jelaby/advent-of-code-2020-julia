@@ -92,10 +92,10 @@ module Part2
         while bits != 0
             if (mask & 1) != 0
                 value |= (bits & 1)<<offset
-                bits = bits >> 1
+                bits >>= 1
             end
             offset += 1
-            mask = mask >> 1
+            mask >>= 1
         end
         return value
     end
