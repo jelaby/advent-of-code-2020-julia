@@ -15,7 +15,7 @@ module Part1
     function nthNumberSpoken(numbers::Array{T}, n::T) where T<:Number
         turns = Dict{T,T}()
         previousTurns = Dict{T,T}()
-        result = zeros(T, n)
+        result = Array{T}(undef, n)
         for i = 1:n
             if i ≤ length(numbers)
                 number = numbers[i]
