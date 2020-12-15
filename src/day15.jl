@@ -12,25 +12,28 @@ module Part1
     using Test
 
 
-
-
-    function nthNumberSpoken(numbers::Array{<:Number}, n, cache=Dict())
-        get!(cache, n) do
-            if (n ≤ length(numbers))
-                return numbers[n]
-            end
-
-            turn = Dict()
-            for m = 1:n-2
-                turn[nthNumberSpoken(numbers,m, cache)] = m
-            end
-            turnSpoken = get(turn, nthNumberSpoken(numbers, n-1, cache), nothing)
-            if isnothing(turnSpoken)
-                return 0
+    function nthNumberSpoken(numbers::Array{<:Number}, n)
+        turns = Dict{Int,Int}()
+        previousTurns = Dict{Int,Int}()
+        result = zeros(Int, n)
+        for i = 1:n
+            if i ≤ length(numbers)
+                number = numbers[i]
             else
-                return n - 1 - turnSpoken
+                previousNumber = result[i-1]
+                previousTurn = get(previousTurns, previousNumber, 0)
+                if previousTurn == 0
+                    number = 0
+                else
+                    number = i - 1 - previousTurn
+                end
             end
+
+            previousTurns[number] = get(turns, number, 0)
+            turns[number] = i
+            result[i] = number
         end
+        return result[end]
     end
 
     nthNumberSpoken(numbers::AbstractString, n) = nthNumberSpoken(parse.(Int, split(numbers,",")), n)
@@ -50,3 +53,4 @@ module Part1
 end
 
 @show Part1.nthNumberSpoken(lines(15), 2020)
+@show Part1.nthNumberSpoken(lines(15), 30000000)
