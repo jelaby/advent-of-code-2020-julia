@@ -28,7 +28,6 @@ module Part1
                 end
             end
 
-            temp = previousTurn
             previousTurn = turns[number+1]
             turns[number+1] = i
         end
