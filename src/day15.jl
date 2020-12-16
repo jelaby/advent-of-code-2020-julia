@@ -16,8 +16,9 @@ module Part1
         turns = zeros(T, max(n, numbers...) + 1)
         number::T = 0
         previousTurn::T = 0
+        numbersLength = length(numbers)
         for i = 1:n ::T
-            if i ≤ length(numbers)
+            if i ≤ numbersLength
                 number = numbers[i]
             else
                 if previousTurn == 0
