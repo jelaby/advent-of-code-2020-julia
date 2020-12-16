@@ -62,13 +62,20 @@ module Part1
     @test parseInput(exampleLines(16,1)).myTicket == [7,1,14]
     @test parseInput(exampleLines(16,1)).tickets == [[7,3,47], [40,4,50], [55,2,20], [38,6,12]]
 
+    function matches(field, value)
+        for range in field.ranges
+            if value ≥ range[1] && value ≤ range[2]
+                return true
+            end
+        end
+        return false
+    end
+
     incorrectTicketValues(lines::Array) = incorrectTicketValues(parseInput(lines))
     incorrectTicketValues(input::Input) = filter(vcat(input.tickets...)) do value
         for field in input.fields
-            for range in field.ranges
-                if value ≥ range[1] && value ≤ range[2]
-                    return false
-                end
+            if matches(field, value)
+                return false
             end
         end
         return true
@@ -77,7 +84,71 @@ module Part1
     @test incorrectTicketValues(exampleLines(16,1)) == [4,55,12]
     @test sum(incorrectTicketValues(exampleLines(16,1))) == 71
 
+    export Input, Field, int, input, parseInput, incorrectTicketValues, matches
+
+end
+
+module Part2
+    using Main.Part1
+    using Test, AoC
+
+    discardIncorrectTickets(input::Input) = filter(input.tickets) do ticket
+        return isempty(filter(ticket) do value
+            for field in input.fields
+                if matches(field, value)
+                    return false
+                end
+            end
+            return true
+        end)
+    end
+    @test discardIncorrectTickets(parseInput(exampleLines(16,1))) == [ [7,3,47] ]
+
+    findFieldNames(input::Input) = findFieldNames(input.fields, discardIncorrectTickets(input))
+    function findFieldNames(fields, tickets)
+        candidates=similar(fields, Vector{Field})
+        for i in CartesianIndices(fields)
+            candidates[i] = copy(fields)
+        end
+
+        searching = true
+        while searching
+        for ticket in tickets
+            for i in CartesianIndices(candidates)
+                filter!(candidates[i]) do candidate
+                    matches(candidate, ticket[i])
+                end
+            end
+            resolved = vcat(filter(c->length(c)==1, candidates)...)
+            if length(resolved) == length(candidates)
+                searching = false
+                break
+            end
+            for a in candidates
+                if length(a) != 1
+                    filter!(b -> b ∉ resolved, a)
+                end
+            end
+        end
+        end
+        return Dict(candidates[i][1].name=>i for i in 1:length(candidates))
+    end
+    @test findFieldNames([Field("foo",[(1,2),(5,6)]), Field("bar",[(7,8)])], [[7,1], [8,2]]) == Dict("bar"=>1, "foo"=>2)
+    @test findFieldNames([Field("foo",[(1,4)]), Field("bar",[(2,3)])], [[2,3], [1,2]]) == Dict("bar"=>2, "foo"=>1)
+
+    departureFields(input) = filter(d->startswith(d.first, "departure"), findFieldNames(input))
+
+    product(args) = reduce(*, args; init=1)
+
+    part2Answer(input) = part2Answer(parseInput(input))
+    part2Answer(input::Input) = product(
+        (input.myTicket[n] for n in values(departureFields(input)))
+    )
+    @test part2Answer(exampleLines(16,1)) == 1
+
 end
 
 using AoC
+input = Part1.parseInput(lines(16))
 @show sum(Part1.incorrectTicketValues(lines(16)))
+@show @time Part2.part2Answer(input)
