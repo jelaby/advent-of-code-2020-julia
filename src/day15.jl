@@ -13,7 +13,7 @@ module Part1
 
 
     function nthNumberSpoken(numbers::Array{T}, n::T) where T<:Number
-        turns = Dict{T,T}()
+        turns = zeros(T, max(n, numbers...) + 1)
         number::T = 0
         previousTurn::T = 0
         for i = 1:n ::T
@@ -28,8 +28,8 @@ module Part1
             end
 
             temp = previousTurn
-            previousTurn = get(turns, number, 0::T)
-            turns[number] = i
+            previousTurn = turns[number+1]
+            turns[number+1] = i
         end
         return number
     end
