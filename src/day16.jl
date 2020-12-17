@@ -144,7 +144,7 @@ module Part2
     part2Answer(input::Input) = product(
         (input.myTicket[n] for n in values(departureFields(input)))
     )
-    @test part2Answer(exampleLines(16,1)) == 1
+    @test @time part2Answer(exampleLines(16,1)) == 1
 
 end
 
