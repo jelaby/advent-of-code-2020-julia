@@ -81,6 +81,6 @@ end
 
 using AoC
 
-@show count(Part1.simulate(Part1.pocketDimension(lines(17),6,2), 6))
-@show count(Part1.simulate(Part1.pocketDimension(lines(17),6), 6))
-@show count(Part1.simulate(Part1.pocketDimension(lines(17),6,4), 6))
+@show @time count(Part1.simulate(Part1.pocketDimension(lines(17),6,2), 6))
+@show @time count(Part1.simulate(Part1.pocketDimension(lines(17),6), 6))
+@show @time count(Part1.simulate(Part1.pocketDimension(lines(17),6,4), 6))
