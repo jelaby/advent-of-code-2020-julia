@@ -9,9 +9,6 @@ module Part1
 
     using Test
 
-
-
-
     function chomps(line)
         while(!isempty(line) && line[1] == ' ')
             line = line[2:end]
