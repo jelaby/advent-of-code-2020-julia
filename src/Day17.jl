@@ -50,21 +50,18 @@ module Part1
         @test pocketDimension(["#"],1)[i] == (Tuple(i) == (2,2,2))
     end
 
-    _offsets(dimensions) = filter(i->sum(abs.(Tuple(i)))≠0, CartesianIndex(Tuple(fill(-1,dimensions))):CartesianIndex(Tuple(fill(1,dimensions))))
-    @test _offsets(2) == CartesianIndex.([(-1,-1),(0,-1),(1,-1),(-1,0),(1,0),(-1,1),(0,1),(1,1)])
-
     function simulate(D::BitArray, rounds)
         target = falses(size(D))
-        offsets = _offsets(ndims(D))
+        one = CartesianIndex(Tuple(ones(Int, ndims(D))))
 
         for round in 1:rounds
             @show round
 
             for I in CartesianIndices(D)
-                neighbours=count(O->checkbounds(Bool,D,I+O) && D[I+O], offsets)
+                neighbours=count(D[filter(i->checkbounds(Bool, D, i), (I-one):(I+one))])
 
                 if D[I]
-                    target[I] = 2 ≤ neighbours ≤ 3
+                    target[I] = 3 ≤ neighbours ≤ 4
                 else
                     target[I] = neighbours == 3
                 end
