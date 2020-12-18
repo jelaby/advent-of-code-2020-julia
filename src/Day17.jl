@@ -23,58 +23,46 @@ module Part1
     @test extend((2,3), 3) == (2,3,1)
     @test extend((2,3,4,5), 7) == (2,3,4,5,1,1,1)
 
-    function addBorder(A::AbstractArray{T}, border, dimensions) where T
-        resultSize = ones(Int, dimensions)
-        for i in 1:length(size(A))
-            resultSize[i] = size(A)[i]
-        end
-        resultSize = Tuple(resultSize)
-
-        border = Tuple(fill(border, dimensions))
-
-        resultSize = resultSize .+ 2 .* border
-
-        result = falses(resultSize)
-        border = CartesianIndex(border)
-        for i in CartesianIndices(A)
-            resultIndex = extend
-
-            result[extend(i, dimensions) + border] = A[i]
+    function setDimension(A, dimensions)
+        resultDims = extend(size(A), dimensions)
+        origin = Tuple(ones(Int, dimensions))
+        result = similar(A, resultDims)
+        for I in CartesianIndices(A)
+            result[extend(I, dimensions)] = A[I]
         end
         return result
     end
-    pocketDimension(lines::Vector, turnHint, dimensions=3)::BitArray = addBorder(BitArray([lines[i][j] =='#' for i=1:length(lines), j=1:length(lines[1])]), turnHint, dimensions)
+    pocketDimension(lines::Vector, turnHint, dimensions=3)::BitArray = setDimension(BitArray([lines[i][j] =='#' for i=1:length(lines), j=1:length(lines[1])]), dimensions)
 
-    @test pocketDimension(["#"],1)[2,2,2] == true
-    for i in CartesianIndex(1,1,1):CartesianIndex(3,3,3)
-        @test pocketDimension(["#"],1)[i] == (Tuple(i) == (2,2,2))
-    end
+    @test pocketDimension(["#"],1) == ones(1,1,1)
 
     function simulate(D::BitArray, rounds)
-        target = falses(size(D))
-        one = CartesianIndex(Tuple(ones(Int, ndims(D))))
+        oneT = Tuple(ones(Int, ndims(D)))
+        one = CartesianIndex(oneT)
+        two = one+one
 
         for round in 1:rounds
             @show round
+            target = falses(size(D) .+ 2 .* oneT)
 
-            for I in CartesianIndices(D)
-                neighbours=count(D[filter(i->checkbounds(Bool, D, i), (I-one):(I+one))])
+            for I in CartesianIndices(target)
+                neighbours=count(D[filter(i->checkbounds(Bool, D, i) && D[i], (I-two):(I))])
 
-                if D[I]
+                if D[I-one]
                     target[I] = 3 ≤ neighbours ≤ 4
                 else
                     target[I] = neighbours == 3
                 end
             end
 
-            target,D = D,target
+            D = target
 
         end
         return D
     end
 
 
-    @test simulate(BitArray(Bool[0 0 0;0 0 1; 0 1 1]), 1) == BitArray(Bool[0 0 0;0 1 1;0 1 1])
+    @test simulate(BitArray(Bool[0 0 0;0 0 1; 0 1 1]), 1)[2:4,2:4] == BitArray(Bool[0 0 0;0 1 1;0 1 1])
     @test count(simulate(pocketDimension(exampleLines(17,1),6), 6)) == 112
 
 end
