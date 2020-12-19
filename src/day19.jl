@@ -83,7 +83,7 @@ module Part1
 
     mid(s, start) = length(s) ≥ start ? s[start:end] : ""
 
-    function match(rule::LiteralRule, text)
+    function match(rule::LiteralRule, text, ::Any)
         matches = startswith(text, rule.text)
         if matches
             return [mid(text, length(rule.text) + 1)]
@@ -91,18 +91,36 @@ module Part1
             return []
         end
     end
-    function match(rule::RefRule, text)
-        return match(rule.rules[rule.key], text)
+    function match(rule::RefRule, text, stack)
+        return match(rule.rules[rule.key], text, stack)
     end
-    function match(rule::OptionRule, text)
-        return rule.rules |> rules->map(r->match(r,text), rules) |> results->vcat(results...)
+    function match(rule::OptionRule, text, stack)
+        return rule.rules |> rules->map(r->match(r,text,stack), rules) |> results->vcat(results...)
     end
-    function match(rule::ConcatRule, text) :: Vector
-        lhsremainders = match(rule.left, text)
-        return map(lhsremainders) do remainder
-            return match(rule.right, remainder)
-        end |> results->vcat(results...)
+
+    function handleStack(f, d, stack::Vector{T}, entry::T) where T
+        if any(x->x==entry, stack)
+            return d
+        else
+            push!(stack, entry)
+            try
+                return f()
+            finally
+                pop!(stack)
+            end
+        end
     end
+
+    function match(rule::ConcatRule, text, stack)
+        handleStack([], stack, rule) do
+            lhsremainders = match(rule.left, text, stack)
+            return map(lhsremainders) do remainder
+                return match(rule.right, remainder)
+            end |> results->vcat(results...)
+        end
+    end
+    match(rule, text) = match(rule, text, [])
+
 
     countmatches(rule, file) = count(eachline(file)) do line
         return any(r->r == "", match(rule, line))
@@ -120,6 +138,7 @@ module Part1
 
     @test match(resolve(Dict(protorulepair.(["0: 1", "1: 2 | 2 1","2: \"a\""]))),"a") == [""]
     @test match(resolve(Dict(protorulepair.(["0: 1", "1: 2 | 2 1","2: \"a\""]))),"aa") ∋ ""
+    @test match(resolve(Dict(protorulepair.(["0: 1", "1: 2 | 1 2","2: \"a\""]))),"aa") ∋ ""
 
     @test checkfile("src/day19-example-1.txt") == 2
     @test checkfile("src/day19-example-2.txt") == 3
