@@ -9,7 +9,7 @@ module Part1
 
     using Test
 
-    function readrules(file)
+    function readprotorules(file)
         protorules = Dict{Int, Rule}()
         while true
             line = readline(file)
@@ -18,7 +18,7 @@ module Part1
             end
             push!(protorules, protorulepair(line))
         end
-        return resolve(protorules)
+        return protorules
     end
 
     abstract type Rule; end
@@ -28,17 +28,20 @@ module Part1
     struct ProtoRefRule <: Rule
         key::Int
     end
-    struct ConcatRule <: Rule
-        rules::Vector{Rule}
+    struct RefRule <: Rule
+        key::Int
+        rules::Dict{Int, Rule}
     end
-    ConcatRule(itr) = ConcatRule(Vector{Rule}(itr))
+    struct ConcatRule <: Rule
+        left::Rule
+        right::Rule
+    end
     struct OptionRule <: Rule
         rules::Vector{Rule}
     end
     OptionRule(itr) = OptionRule(Vector{Rule}(itr))
 
     function protorulepair(s)
-        @show s
         key,remainder = strip.(split(s, ":"; limit=2))
         return parse(Int, key) => protorule(remainder)
     end
@@ -54,7 +57,7 @@ module Part1
                     return protorefrule(part)
                 end
             else
-                return ConcatRule(protorule.(parts))
+                return concatrule(protorule.(parts))
             end
         else
             return OptionRule(protorule.(options))
@@ -63,63 +66,66 @@ module Part1
 
     literalrule(part) = LiteralRule(part[2:length(part)-1])
     protorefrule(part) = ProtoRefRule(parse(Int, part))
+    concatrule(parts) = length(parts) == 1 ? parts[1] : ConcatRule(parts[1], concatrule(parts[2:end]))
 
-    struct MatchResult
-        matches::Bool
-        remainder::AbstractString
+    function resolve(rules::Dict)
+        result = Dict{Int, Rule}()
+        for rulepair in rules
+            push!(result, rulepair.first => resolve(rulepair.second, rules, result))
+        end
+        return result[0]
     end
 
-    resolve(rules::Dict) = resolve(rules[0], rules)
-    resolve(rule::LiteralRule, rules) = rule
-    resolve(rule::OptionRule, rules) = OptionRule([resolve(r, rules) for r in rule.rules])
-    resolve(rule::ConcatRule, rules) = ConcatRule([resolve(r, rules) for r in rule.rules])
-    resolve(rule::ProtoRefRule, rules) = resolve(rules[rule.key], rules)
+    resolve(rule::LiteralRule, rules, target) = rule
+    resolve(rule::OptionRule, rules, target) = OptionRule([resolve(r, rules, target) for r in rule.rules])
+    resolve(rule::ConcatRule, rules, target) = ConcatRule(resolve(rule.left, rules, target), resolve(rule.right, rules, target))
+    resolve(rule::ProtoRefRule, rules, target) = RefRule(rule.key, target)
 
     mid(s, start) = length(s) ≥ start ? s[start:end] : ""
 
     function match(rule::LiteralRule, text)
         matches = startswith(text, rule.text)
         if matches
-            return MatchResult(matches, mid(text, length(rule.text) + 1))
+            return [mid(text, length(rule.text) + 1)]
         else
-            return MatchResult(matches, text)
+            return []
         end
+    end
+    function match(rule::RefRule, text)
+        return match(rule.rules[rule.key], text)
     end
     function match(rule::OptionRule, text)
-        for r in rule.rules
-            result = match(r, text)
-            if result.matches
-                return result
-            end
-        end
-        return MatchResult(false, text)
+        return rule.rules |> rules->map(r->match(r,text), rules) |> results->vcat(results...)
     end
-    function match(rule::ConcatRule, text)
-        remainder = text
-        for r in rule.rules
-            result = match(r, remainder)
-            if !result.matches
-                return MatchResult(false, text)
-            end
-            remainder = result.remainder
-        end
-        return MatchResult(true, remainder)
+    function match(rule::ConcatRule, text) :: Vector
+        lhsremainders = match(rule.left, text)
+        return map(lhsremainders) do remainder
+            return match(rule.right, remainder)
+        end |> results->vcat(results...)
     end
 
     countmatches(rule, file) = count(eachline(file)) do line
-        result = match(rule, line)
-        return result.matches && result.remainder == ""
+        return any(r->r == "", match(rule, line))
     end
 
-    checkfile(filename::AbstractString) = open(checkfile, filename)
-    function checkfile(file)
-        rule = readrules(file)
+    checkfile(filename::AbstractString, extras=[]) = open(f->checkfile(f,extras), filename)
+    function checkfile(file, extras=[])
+        protorules = readprotorules(file)
+        for pair in extras
+            protorules[pair.first] = pair.second
+        end
+        rule = resolve(protorules)
         return countmatches(rule, file)
     end
 
+    @test match(resolve(Dict(protorulepair.(["0: 1", "1: 2 | 2 1","2: \"a\""]))),"a") == [""]
+    @test match(resolve(Dict(protorulepair.(["0: 1", "1: 2 | 2 1","2: \"a\""]))),"aa") ∋ ""
 
     @test checkfile("src/day19-example-1.txt") == 2
+    @test checkfile("src/day19-example-2.txt") == 3
+    @test checkfile("src/day19-example-2.txt", protorulepair.(["8: 42 | 42 8", "11: 42 31 | 42 11 31"])) == 12
 
 end
 
 @show Part1.checkfile("src/day19-input.txt")
+@show Part1.checkfile("src/day19-input.txt", Part1.protorulepair.(["8: 42 | 42 8", "11: 42 31 | 42 11 31"]))
