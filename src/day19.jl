@@ -71,15 +71,15 @@ module Part1
     function resolve(rules::Dict)
         result = Dict{Int, Rule}()
         for rulepair in rules
-            push!(result, rulepair.first => resolve(rulepair.second, rules, result))
+            push!(result, rulepair.first => resolve(rulepair.second, result))
         end
         return result[0]
     end
 
-    resolve(rule::LiteralRule, rules, target) = rule
-    resolve(rule::OptionRule, rules, target) = OptionRule([resolve(r, rules, target) for r in rule.rules])
-    resolve(rule::ConcatRule, rules, target) = ConcatRule(resolve(rule.left, rules, target), resolve(rule.right, rules, target))
-    resolve(rule::ProtoRefRule, rules, target) = RefRule(rule.key, target)
+    resolve(rule::LiteralRule, target) = rule
+    resolve(rule::OptionRule, target) = OptionRule([resolve(r, target) for r in rule.rules])
+    resolve(rule::ConcatRule, target) = ConcatRule(resolve(rule.left, target), resolve(rule.right, target))
+    resolve(rule::ProtoRefRule, target) = RefRule(rule.key, target)
 
     mid(s, start) = length(s) ≥ start ? s[start:end] : ""
 
