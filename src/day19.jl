@@ -127,5 +127,5 @@ module Part1
 
 end
 
-@show Part1.checkfile("src/day19-input.txt")
-@show Part1.checkfile("src/day19-input.txt", Part1.protorulepair.(["8: 42 | 42 8", "11: 42 31 | 42 11 31"]))
+@show @time Part1.checkfile("src/day19-input.txt")
+@show @time Part1.checkfile("src/day19-input.txt", Part1.protorulepair.(["8: 42 | 42 8", "11: 42 31 | 42 11 31"]))
