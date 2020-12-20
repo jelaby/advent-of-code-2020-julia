@@ -79,15 +79,17 @@ module Part1
 
     function reconstructimage(images)
         sideIdsToImages = Dict{Int, Vector{Image}}()
+        imageIdsToImages = Dict{Int, Image}()
         for image in images
+            imageIdsToImages[image.id] = image
             for sideId in [image.leftId, image.rightId, image.topId, image.bottomId]
                 push!(get!(sideIdsToImages, sideId) do; Vector{Image}(); end, image)
                 push!(get!(sideIdsToImages, reverseSideId(sideId)) do; Vector{Image}(); end, image)
             end
         end
-        @show sideIdsToImages
 
         cornerIds = Set{Int}()
+        corners = Set{Image}()
         for image in images
             imagesWithMatchingSides = Set{Int}()
             for sideId in [image.leftId, image.rightId, image.topId, image.bottomId]
@@ -97,17 +99,112 @@ module Part1
             end
             if length(imagesWithMatchingSides) == 3 # a corner matches itself and 2 others
                 push!(cornerIds, id(image))
+                push!(corners, image)
             end
         end
 
-        return cornerIds
+        tilesPerSide = floor(Int, sqrt(length(images)))
+
+        result = Array{Image, 2}(undef, tilesPerSide, tilesPerSide)
+
+        result[1,1] = transformToTopLeft([corners...][1], sideIdsToImages)
+
+        for i = 1:size(result, 1)
+            if i != 1
+                tileAbove = result[i-1,1]
+                previousEdgeId = tileAbove.bottomId
+                nextTile = filter(image -> id(image) ≠ id(tileAbove), sideIdsToImages[previousEdgeId])[1]
+                @show id.(sideIdsToImages[previousEdgeId])
+                @test length(sideIdsToImages[previousEdgeId]) == 2
+                nextTile = transformForTop(nextTile, previousEdgeId)
+                result[i, 1] = nextTile
+            end
+            tileToLeft = result[i, 1]
+            for j = 2:size(result, 2)
+                previousEdgeId = tileToLeft.rightId
+                nextTiles = filter(image -> id(image) ≠ id(tileToLeft), sideIdsToImages[previousEdgeId])
+                nextTile = transformForLeft(nextTiles[1], previousEdgeId)
+                result[i, j] = nextTile
+                tileToLeft = nextTile
+            end
+        end
+
+        return result
     end
 
+    function rotateRight(body::AbstractArray{Bool, 2})
+        return BitArray(body[size(body, 2) + 1 - j, i] for i in 1:size(body,1), j in 1:size(body, 2))
+    end
+    @test rotateRight(BitArray([0 1 1;0 1 0;0 1 0])) == BitArray([0 0 0;1 1 1;0 0 1])
 
-    @test reconstructimage(parseSateliteMessage(AoC.exampleLines(20,1))) == Set{Int}([1951, 2971, 3079, 1171])
-    @test reduce(*, reconstructimage(parseSateliteMessage(AoC.exampleLines(20,1)))) == 20899048083289
+    function rotateRight(image::Image)
+        Image(image.id, rotateRight(image.body))
+    end
+
+    function flipRight(body::AbstractArray{Bool, 2})
+        return BitArray(body[i, size(body, 2) + 1 - j] for i in 1:size(body,1), j in 1:size(body, 2))
+    end
+    @test flipRight(BitArray([0 1 1;0 1 0; 0 1 0])) == BitArray([1 1 0;0 1 0; 0 1 0])
+    function flipRight(image::Image)
+        Image(image.id, flipRight(image.body))
+    end
+
+    function transformToTopLeft(image::Image, sideIdsToImages)
+        for i = 1:4
+            if length(sideIdsToImages[image.leftId]) == 1 && length(sideIdsToImages[image.topId]) == 1
+                return image
+            end
+            image = rotateRight(image)
+        end
+        return image
+    end
+
+    sideIds(image) = [image.leftId, image.rightId, image.topId, image.bottomId]
+
+    function transformForLeft(image::Image, leftSideId)
+        for flip in 0:1
+            for rotate in 0:3
+                if image.leftId == leftSideId
+                    return image
+                end
+                image = rotateRight(image)
+            end
+            image = flip == 0 ? flipRight(image) : flipOver(image)
+        end
+        error("Could not match image "*show(sideIds(image))*" to "*string(leftSideId)*"/"*string(topSideId))
+    end
+
+    function transformForTop(image::Image, topSideId)
+        for flip in 0:1
+            for rotate in 0:3
+                if image.topId == topSideId
+                    return image
+                end
+                image = rotateRight(image)
+            end
+            image = flip == 0 ? flipRight(image) : flipOver(image)
+        end
+        error("Could not match image "*show(sideIds(image))*" to "*string(leftSideId)*"/"*string(topSideId))
+    end
+
+    function corners(A)
+        @show id.(A)
+        return Set([
+        A[1,1],
+        A[size(A,1), 1],
+        A[size(A,1),size(A,2)],
+        A[1, size(A,2)]
+        ])
+    end
+
+    product(iter) = reduce(*, iter)
+
+    @test reconstructimage(parseSateliteMessage(AoC.exampleLines(20,1))) |> corners .|> id |> Set{Int} == Set{Int}([1951, 2971, 3079, 1171])
+    @test product(reconstructimage(parseSateliteMessage(AoC.exampleLines(20,1))) |> corners .|> id) == 20899048083289
+    @test product(reconstructimage(parseSateliteMessage(AoC.lines(20))) |> corners .|> id) == 29125888761511
 
 end
 
+using Main.Part1
 
-@show reduce(*, Part1.reconstructimage(Part1.parseSateliteMessage(AoC.lines(20))))
+@show Part1.product(Part1.reconstructimage(Part1.parseSateliteMessage(AoC.lines(20))) |> Part1.corners .|> Part1.id)
