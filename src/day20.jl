@@ -76,8 +76,9 @@ module Part1
     end
 
     id(i) = i.id
+    body(i) = i.body
 
-    function reconstructimage(images)
+    function placesubimages(images)
         sideIdsToImages = Dict{Int, Vector{Image}}()
         imageIdsToImages = Dict{Int, Image}()
         for image in images
@@ -133,7 +134,7 @@ module Part1
     end
 
     function rotateRight(body::AbstractArray{Bool, 2})
-        return BitArray(body[size(body, 2) + 1 - j, i] for i in 1:size(body,1), j in 1:size(body, 2))
+        return BitArray([body[size(body, 2) + 1 - j, i] for i in 1:size(body,1), j in 1:size(body, 2)])
     end
     @test rotateRight(BitArray([0 1 1;0 1 0;0 1 0])) == BitArray([0 0 0;1 1 1;0 0 1])
 
@@ -142,12 +143,17 @@ module Part1
     end
 
     function flipRight(body::AbstractArray{Bool, 2})
-        return BitArray(body[i, size(body, 2) + 1 - j] for i in 1:size(body,1), j in 1:size(body, 2))
+        return BitArray([body[i, size(body, 2) + 1 - j] for i in 1:size(body,1), j in 1:size(body, 2)])
     end
     @test flipRight(BitArray([0 1 1;0 1 0; 0 1 0])) == BitArray([1 1 0;0 1 0; 0 1 0])
     function flipRight(image::Image)
         Image(image.id, flipRight(image.body))
     end
+
+    function flipOver(body::AbstractArray{Bool, 2})
+        return BitArray([body[size(body, 1) + 1 - i, j] for i in 1:size(body,1), j in 1:size(body, 2)])
+    end
+    @test flipOver(BitArray([0 1 1;0 1 0; 0 1 0])) == BitArray([0 1 0;0 1 0; 0 1 1])
 
     function transformToTopLeft(image::Image, sideIdsToImages)
         for i = 1:4
@@ -199,12 +205,70 @@ module Part1
 
     product(iter) = reduce(*, iter)
 
-    @test reconstructimage(parseSateliteMessage(AoC.exampleLines(20,1))) |> corners .|> id |> Set{Int} == Set{Int}([1951, 2971, 3079, 1171])
-    @test product(reconstructimage(parseSateliteMessage(AoC.exampleLines(20,1))) |> corners .|> id) == 20899048083289
-    @test product(reconstructimage(parseSateliteMessage(AoC.lines(20))) |> corners .|> id) == 29125888761511
+    removeborder(image) = image[2:size(image,1)-1, 2:size(image,2)-1]
+
+    function combineimages(images::AbstractArray{Image,2})
+        images = images .|> body .|> removeborder
+        partsize = size(images[1,1])
+        origin = CartesianIndex(1,1)
+
+        result = similar(images[1,1], partsize[1] * size(images,1), partsize[2] * size(images, 2))
+        @show size(result)
+
+        for i = 1:size(images, 1), j = 1:size(images, 1)
+            copyto!(result, origin + CartesianIndex(partsize .* (i-1,j-1)):CartesianIndex(partsize .* (i,j)), images[i,j], origin:CartesianIndex(partsize))
+        end
+
+        @show size(result)
+        return result
+    end
+
+    buildseamonster(image::AbstractArray{String, 1}) = [image[i][j]=='#' for i in 1:length(image), j in 1:length(image[1])]
+
+    seamonster = buildseamonster([
+    "                  # "
+    "#    ##    ##    ###"
+    " #  #  #  #  #  #   "])
+
+    function subtractseamonsters(image::AbstractArray{Bool, 2})
+        result = copy(image)
+        monstersize = size(seamonster)
+        monstercount = 0
+        for i in 1:size(image,1)-size(seamonster,1), j in 1:size(image,2)-size(seamonster, 2)
+            subimageindices = CartesianIndices((i:i+monstersize[1]-1,j:j+monstersize[2]-1))
+            subimage = result[subimageindices]
+
+            if subimage .& seamonster == seamonster
+                subimage .&= .~seamonster
+                copyto!(result, subimageindices, subimage, CartesianIndices(subimage))
+                monstercount += 1
+            end
+        end
+        @show monstercount
+        return result
+    end
+
+    function roughness(image::AbstractArray{Bool, 2})
+        result = count(image)
+        for flip in 0:1
+            for rotate in 0:3
+                result = min(result, image |> subtractseamonsters |> count)
+                image = rotateRight(image)
+            end
+            image = flip == 0 ? flipRight(image) : flipOver(image)
+        end
+        return result
+    end
+
+    @test placesubimages(parseSateliteMessage(AoC.exampleLines(20,1))) |> corners .|> id |> Set{Int} == Set{Int}([1951, 2971, 3079, 1171])
+    @test product(placesubimages(parseSateliteMessage(AoC.exampleLines(20,1))) |> corners .|> id) == 20899048083289
+    @test product(placesubimages(parseSateliteMessage(AoC.lines(20))) |> corners .|> id) == 29125888761511
+
+    @test AoC.exampleLines(20,1) |> parseSateliteMessage |> placesubimages |> combineimages |> roughness == 273
 
 end
 
 using Main.Part1
 
-@show Part1.product(Part1.reconstructimage(Part1.parseSateliteMessage(AoC.lines(20))) |> Part1.corners .|> Part1.id)
+@show Part1.product(Part1.placesubimages(Part1.parseSateliteMessage(AoC.lines(20))) |> Part1.corners .|> Part1.id)
+@show AoC.lines(20) |> Part1.parseSateliteMessage |> Part1.placesubimages |> Part1.combineimages |> Part1.roughness
