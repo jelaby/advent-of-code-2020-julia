@@ -271,4 +271,4 @@ end
 using Main.Part1
 
 @show Part1.product(Part1.placesubimages(Part1.parseSateliteMessage(AoC.lines(20))) |> Part1.corners .|> Part1.id)
-@show AoC.lines(20) |> Part1.parseSateliteMessage |> Part1.placesubimages |> Part1.combineimages |> Part1.roughness
+@show @time AoC.lines(20) |> Part1.parseSateliteMessage |> Part1.placesubimages |> Part1.combineimages |> Part1.roughness
