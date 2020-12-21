@@ -134,7 +134,7 @@ module Part1
     end
 
     function rotateRight(body::AbstractArray{Bool, 2})
-        return BitArray([body[size(body, 2) + 1 - j, i] for i in 1:size(body,1), j in 1:size(body, 2)])
+        return BitArray(body[size(body, 2) + 1 - j, i] for i in 1:size(body,1), j in 1:size(body, 2))
     end
     @test rotateRight(BitArray([0 1 1;0 1 0;0 1 0])) == BitArray([0 0 0;1 1 1;0 0 1])
 
@@ -143,7 +143,7 @@ module Part1
     end
 
     function flipRight(body::AbstractArray{Bool, 2})
-        return BitArray([body[i, size(body, 2) + 1 - j] for i in 1:size(body,1), j in 1:size(body, 2)])
+        return BitArray(body[i, size(body, 2) + 1 - j] for i in 1:size(body,1), j in 1:size(body, 2))
     end
     @test flipRight(BitArray([0 1 1;0 1 0; 0 1 0])) == BitArray([1 1 0;0 1 0; 0 1 0])
     function flipRight(image::Image)
@@ -151,7 +151,7 @@ module Part1
     end
 
     function flipOver(body::AbstractArray{Bool, 2})
-        return BitArray([body[size(body, 1) + 1 - i, j] for i in 1:size(body,1), j in 1:size(body, 2)])
+        return BitArray(body[size(body, 1) + 1 - i, j] for i in 1:size(body,1), j in 1:size(body, 2))
     end
     @test flipOver(BitArray([0 1 1;0 1 0; 0 1 0])) == BitArray([0 1 0;0 1 0; 0 1 1])
 
