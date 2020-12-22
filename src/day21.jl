@@ -47,13 +47,59 @@ module Part1
         return total;
     end
 
+    function dangerousingredientlist(inputs)
+
+        safe = safefoods(inputs)
+
+        @show allAllergens = Set(reduce(∪, map(i->i.allergens, inputs)))
+        allIngredients = Set(reduce(∪, map(i->i.ingredients, inputs)))
+
+        allergenMap = Dict()
+
+#=
+        while length(allergenMap) != length(allAllergens)
+            for input in inputs
+                maybeUnsafe = setdiff(input.ingredients, safe)
+                allergenCandidates = setdiff(input.allergens, keys(allergenMap))
+                @show input, maybeUnsafe, allergenCandidates
+                if length(maybeUnsafe) == 1 && length(allergenCandidates) == 1
+                    allergenMap[allergenCandidates[1]] = maybeUnsafe[1]
+                end
+            end
+            @show allergenMap
+        end
+        =#
+
+        while length(allergenMap) != length(allAllergens)
+        for allergen in allAllergens
+            candidates = copy(allIngredients)
+            for input in inputs
+                if allergen ∈ input.allergens
+                    candidates = candidates ∩ input.ingredients
+                end
+            end
+            if length(candidates) == 1
+                @show allergen, candidates
+                allergenMap[allergen] = [candidates...][1]
+                setdiff!(allIngredients, candidates)
+            end
+        end
+        end
+
+        return join([allergenMap[allergen] for allergen in sort([allAllergens...])], ",")
+
+
+    end
+
     @test AoC.exampleLines(21,1) .|> parseinput |> safefoods == Set(["kfcds", "nhms", "sbzzf", "trh"])
     @test AoC.exampleLines(21,1) .|> parseinput |> safecount == 5
+    @test AoC.exampleLines(21,1) .|> parseinput |> dangerousingredientlist == "mxmxvkd,sqjhc,fvjkl"
 
-    export parseinput, safefoods, safecount
+    export parseinput, safefoods, safecount, dangerousingredientlist
 
 end
 
 using AoC, .Part1
 
 @show AoC.lines(21) .|> parseinput |> safecount
+@show AoC.lines(21) .|> parseinput |> dangerousingredientlist
