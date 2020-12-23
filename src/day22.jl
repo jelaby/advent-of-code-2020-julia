@@ -32,9 +32,9 @@ module Part1
     end
 
     function playround!(hands)
-        @show cards = popfirst!.(hands)
+        cards = popfirst!.(hands)
 
-        @show best = findmax(cards)[2]
+        best = findmax(cards)[2]
 
         push!(hands[best], reverse(sort(cards))...)
 
@@ -59,6 +59,54 @@ module Part1
 
 end
 
-using AoC, .Part1
+module Part2
 
+    using Test, AoC, .Main.Part1
+
+    function playrecursiveround!(hands, previoushands=[])
+        if hands ∈ previoushands
+            return [hands[1], []]
+        else
+            cards = popfirst!.(hands)
+
+            if count(CartesianIndices(hands) .|> (i -> length(hands[i]) < cards[i])) != 0
+                best = findmax(cards)[2]
+            else
+                newhands = similar(hands)
+                for i in CartesianIndices(hands)
+                    newhands[i] = copy(hands[i][1:cards[i]])
+                end
+                best = findmax(length.(playrecursivegame!(newhands)))[2]
+            end
+            order = [cards[best], cards[3-best]]
+            push!(hands[best], order...)
+
+            return hands
+        end
+    end
+
+    function playrecursivegame!(hands)
+        @show :playrecursivegame!, hands
+        previoushands = []
+        while count(h->!isempty(h), hands) != 1
+            if hands ∈ previoushands
+                return [hands[1],[]]
+            end
+            push!(previoushands, deepcopy(hands))
+            playrecursiveround!(hands, [])
+        end
+        return hands
+    end
+
+    @test AoC.exampleLines(22,1) |> parseinput |> playrecursivegame! |> winningscore == 291
+
+    export playrecursivegame!
+
+end
+
+using AoC, .Part1, .Part2
+
+println("Starting...")
 @show AoC.lines(22) |> parseinput |> playgame! |> winningscore
+println("Starting...")
+@show AoC.lines(22) |> parseinput |> playrecursivegame! |> winningscore
