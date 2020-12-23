@@ -15,6 +15,12 @@ module Part1
     using Printf
     import Dates
 
+    mutable struct Cup
+        value::Int
+        next::Union{Cup, Nothing}
+    end
+    Cup(value) = Cup(value, nothing)
+
     concat(args) = reduce(*, args)
 
     playgame(cups::AbstractString, rounds) = playgame([cups...], rounds) .|> string |> concat
@@ -24,7 +30,23 @@ module Part1
     function playgame!(cups::AbstractVector{Int}, rounds)
         starttime = Dates.now()
         milestone = 1
-        current = 1
+
+        firstCup = Cup(cups[1])
+        currentCup = firstCup
+        cupOne = nothing
+        for i in 2:length(cups)
+            nextCup = Cup(cups[i])
+            currentCup.next = nextCup
+            currentCup = nextCup
+            if cups[i] == 1
+                cupOne = nextCup
+            end
+        end
+        currentCup.next = firstCup
+
+        current = firstCup
+        ncups = length(cups)
+
         for round in 1:rounds
             if round == milestone
                 t = Dates.now()
@@ -32,45 +54,43 @@ module Part1
                 estimate = elapsed * floor(Int, length(cups)/round)
                 println(@sprintf "Round %i (%s of %s)" round Dates.canonicalize(Dates.CompoundPeriod(floor(elapsed, Dates.Second(1)))) Dates.canonicalize(Dates.CompoundPeriod(floor(estimate, Dates.Second(1)))))
                 milestone*=2
+                @time current = playround!(current, ncups)
+            else
+                current = playround!(current, ncups)
             end
-            current = playround!(cups, current)
         end
         @show :complete
-        return [cups[mod1(i + findfirst(i->i==1, cups) ,length(cups))] for i in 1:min(length(cups) - 1, 20)]
+        result = similar(cups, min(length(cups) - 1, 20))
+        cup = cupOne.next
+        for i in CartesianIndices(result)
+            result[i] = cup.value
+            cup = cup.next
+        end
+        return result
     end
 
-    function playround!(cups, current)
-        ncups = length(cups)
-        currentcup = cups[current]
+    function playround!(current::Cup, ncups::Int) :: Cup
+        picked = [current.next.value, current.next.next.value, current.next.next.next.value]
+        firstPicked = current.next
 
-        ∔(a::Int,b::Int) = mod1(a+b, ncups)
+        nextCup = current.next.next.next.next
 
-        picked = [cups[mod1(i,ncups)] for i in current+1:current+3]
-
-        destinationcup = mod1(currentcup - 1, ncups)
+        destinationcup = mod1(current.value - 1, ncups)
         while destinationcup ∈ picked
             destinationcup = mod1(destinationcup - 1, ncups)
         end
 
-        rindex = current ∔ 1
-        sindex = current ∔ 4
+        current.next = nextCup
 
-        while cups[sindex] != destinationcup
-            cups[rindex] = cups[sindex]
-            rindex = rindex ∔ 1
-            sindex = sindex ∔ 1
+        while(nextCup.value != destinationcup)
+            nextCup = nextCup.next
         end
 
-        cups[rindex] = cups[sindex]
-        rindex = rindex ∔ 1
-        sindex = sindex ∔ 1
+        afterCup = nextCup.next
+        nextCup.next = firstPicked
+        firstPicked.next.next.next = afterCup
 
-        for cup in picked
-            cups[rindex] = cup
-            rindex = rindex ∔ 1
-        end
-
-        return current ∔ 1
+        return current.next
     end
 
 
