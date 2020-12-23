@@ -35,7 +35,8 @@ module Part1
             end
             current = playround!(cups, current)
         end
-        return [cups[mod1(i + findfirst(i->i==1, cups) ,length(cups))] for i in 1:length(cups)-1]
+        @show :complete
+        return [cups[mod1(i + findfirst(i->i==1, cups) ,length(cups))] for i in 1:min(length(cups) - 1, 20)]
     end
 
     function playround!(cups, current)
@@ -98,4 +99,7 @@ end
 using .Part1
 
 @show playgame("467528193", 100)
+println("Test:")
+@show reduce(*, playgame2("467528193", 1000000, 2)[1:2])
+println("Run:")
 @show reduce(*, playgame2("467528193", 1000000, 10000000)[1:2])
