@@ -44,6 +44,13 @@ module Part1
         end
         currentCup.next = firstCup
 
+        cupRefs = similar(cups, Cup)
+        currentCup = firstCup
+        for i in 1:length(cups)
+            cupRefs[currentCup.value] = currentCup
+            currentCup = currentCup.next
+        end
+
         current = firstCup
         ncups = length(cups)
 
@@ -54,12 +61,11 @@ module Part1
                 estimate = elapsed * floor(Int, length(cups)/round)
                 println(@sprintf "Round %i (%s of %s)" round Dates.canonicalize(Dates.CompoundPeriod(floor(elapsed, Dates.Second(1)))) Dates.canonicalize(Dates.CompoundPeriod(floor(estimate, Dates.Second(1)))))
                 milestone*=2
-                @time current = playround!(current, ncups)
+                @time current = playround!(current, ncups, cupRefs)
             else
-                current = playround!(current, ncups)
+                current = playround!(current, ncups, cupRefs)
             end
         end
-        @show :complete
         result = similar(cups, min(length(cups) - 1, 20))
         cup = cupOne.next
         for i in CartesianIndices(result)
@@ -69,7 +75,7 @@ module Part1
         return result
     end
 
-    function playround!(current::Cup, ncups::Int) :: Cup
+    function playround!(current::Cup, ncups::Int, cupRefs::Vector{Cup}) :: Cup
         picked = [current.next.value, current.next.next.value, current.next.next.next.value]
         firstPicked = current.next
 
@@ -82,9 +88,7 @@ module Part1
 
         current.next = nextCup
 
-        while(nextCup.value != destinationcup)
-            nextCup = nextCup.next
-        end
+        nextCup = cupRefs[destinationcup]
 
         afterCup = nextCup.next
         nextCup.next = firstPicked
@@ -99,7 +103,7 @@ module Part1
     @test playgame("389125467", 10) == "92658374"
     @test playgame("389125467", 100) == "67384529"
 
-    playgame2(cups::AbstractString, ncups, rounds) = playgame2([cups...], ncups, rounds) .|> string |> concat
+    playgame2(cups::AbstractString, ncups, rounds) = playgame2([cups...], ncups, rounds)
     playgame2(cups::AbstractVector{<:AbstractChar}, ncups, rounds) = playgame2([parse(Int, String([cup])) for cup in cups], ncups, rounds)
     function playgame2(numbers, ncups, rounds)
         cups = similar(numbers, ncups)
@@ -120,6 +124,6 @@ using .Part1
 
 @show playgame("467528193", 100)
 println("Test:")
-@show reduce(*, playgame2("467528193", 1000000, 2)[1:2])
+@show reduce(*, @show playgame2("467528193", 1000000, 2)[1:2])
 println("Run:")
 @show reduce(*, playgame2("467528193", 1000000, 10000000)[1:2])
