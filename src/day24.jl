@@ -74,12 +74,59 @@ module Part1
         return result
     end
 
-    export parseline, runinstructions, black, white
+    adjacents(coord) = adjacents(coord...)
+    function adjacents(x,y)
+        return [
+            move(:e, x,y),
+            move(:w, x,y),
+            move(:se, x,y),
+            move(:sw, x,y),
+            move(:ne, x,y),
+            move(:nw, x,y),
+        ]
+    end
+    @test adjacents(0,0) == [(1,0),(-1,0),(1,-1),(0,-1),(1,1),(0,1)]
+
+    function livingart(tiles, rounds)
+
+        for day in 1:rounds
+            nextTiles = Dict{Tuple{Int,Int}, Tile}()
+
+            tilesToCheck = Set{Tuple{Int,Int}}()
+            push!(tilesToCheck, keys(tiles)...)
+            for x in keys(tiles)
+                a = adjacents(x)
+                push!(tilesToCheck, a...)
+            end
+
+            for coord in tilesToCheck
+                tile = get(tiles, coord, white)
+                adjacentTiles = adjacents(coord) .|> a->get(tiles, a, white)
+                adjacentBlackTiles = count(t->t==black, adjacentTiles)
+                if tile == black && 0 < adjacentBlackTiles < 3
+                    nextTiles[coord] = black
+                elseif tile == white && adjacentBlackTiles == 2
+                    nextTiles[coord] = black
+                end
+            end
+
+            tiles = nextTiles
+
+        end
+
+        return tiles
+
+    end
+
+    export parseline, runinstructions, black, white, livingart
 end
 
 using Test, AoC, .Part1
 
 @test AoC.exampleLines(24,1) .|> parseline |> runinstructions |> f -> count(t->t==black, values(f)) == 10
+@test (AoC.exampleLines(24,1) .|> parseline |> runinstructions |> f -> livingart(f, 1) |> f -> count(t->t==black, values(f))) == 15
+@test (AoC.exampleLines(24,1) .|> parseline |> runinstructions |> f -> livingart(f, 100) |> f -> count(t->t==black, values(f))) == 2208
 println("Starting...")
-@show AoC.lines(24) .|> parseline |> runinstructions |> f -> count(t->t==black, values(f))
+@show @time AoC.lines(24) .|> parseline |> runinstructions |> f -> count(t->t==black, values(f))
+@show @time AoC.lines(24) .|> parseline |> runinstructions |> f -> livingart(f, 100) |> f -> count(t->t==black, values(f))
 
