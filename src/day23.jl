@@ -75,7 +75,7 @@ module Part1
         return result
     end
 
-    function playround!(current::Cup, ncups::Int, cupRefs::Vector{Cup}) :: Cup
+    function playround!(current, ncups, cupRefs)
         picked = [current.next.value, current.next.next.value, current.next.next.next.value]
         firstPicked = current.next
 
@@ -126,4 +126,4 @@ using .Part1
 println("Test:")
 @show reduce(*, @show playgame2("467528193", 1000000, 2)[1:2])
 println("Run:")
-@show reduce(*, playgame2("467528193", 1000000, 10000000)[1:2])
+@show @time reduce(*, playgame2("467528193", 1000000, 10000000)[1:2])
